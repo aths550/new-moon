@@ -1,39 +1,36 @@
 {
   "name": "@midnight-ntwrk/bboard-contract",
   "version": "0.1.0",
+  "author": "IOG",
+  "license": "MIT",
+  "private": true,
   "type": "module",
-  "main": "./dist/index.js",
   "module": "./dist/index.js",
+  "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "require": "./dist/index.js",
       "import": "./dist/index.js",
       "default": "./dist/index.js"
-    }
+    },
+    "./managed/*": "./dist/managed/*"
   },
   "scripts": {
-    "build": "rm -rf dist && tsc --project tsconfig.build.json && cp -Rf ./src/managed ./dist/managed && cp ./src/bboard.compact ./dist && cp ./src/auction.compact ./dist 2>/dev/null; true",
-    "ci": "npm run compact && npm run typecheck && npm run lint && npm run build && npm run test",
     "compact": "compact compile src/bboard.compact ./src/managed/bboard && compact compile src/auction.compact ./src/managed/auction",
+    "compact:watch": "compact compile --watch src/bboard.compact ./src/managed/bboard",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint src",
+    "build": "rm -rf dist && tsc --project tsconfig.build.json && mkdir -p dist/managed && (cp -Rf ./src/managed/* ./dist/managed/ 2>/dev/null || true) && (cp ./src/bboard.compact ./dist/ 2>/dev/null || true) && (cp ./src/auction.compact ./dist/ 2>/dev/null || true)",
     "test": "vitest",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "ci": "npm run compact && npm run typecheck && npm run lint && npm run build && npm run test"
   },
   "dependencies": {
-    "@midnight-ntwrk/midnight-js-contracts": "4.1.1",
-    "@midnight-ntwrk/midnight-js-protocol": "4.1.1"
+    "@midnight-ntwrk/compact-runtime": "0.9.0",
+    "@midnight-ntwrk/midnight-js-contracts": "4.1.1"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3.3.5",
-    "@eslint/js": "^9.39.4",
-    "@typescript-eslint/eslint-plugin": "^8.61.0",
-    "eslint": "^9.39.4",
-    "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-prettier": "^5.5.6",
-    "globals": "^17.6.0",
-    "typescript": "^5.9.3",
-    "vitest": "^4.1.0"
+    "@midnight-ntwrk/compact-compiler": "^0.9.0",
+    "vitest": "^4.1.10"
   }
 }
