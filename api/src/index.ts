@@ -46,6 +46,7 @@ export interface DeployedBBoardAPI {
   readonly deployedContractAddress: ContractAddress;
   readonly state$: Observable<BBoardDerivedState>;
 
+  updateAllowlistRoot: (newRoot: Uint8Array) => Promise<void>;
   post: (message: string) => Promise<void>;
   takeDown: () => Promise<void>;
 }
@@ -110,6 +111,7 @@ export class BBoardAPI implements DeployedBBoardAPI {
           state: ledgerState.state,
           message: ledgerState.message.value,
           sequence: ledgerState.sequence,
+          merkleRoot: ledgerState.merkleRoot,
           isOwner: toHex(ledgerState.owner) === toHex(hashedSecretKey),
         };
       },
@@ -126,6 +128,25 @@ export class BBoardAPI implements DeployedBBoardAPI {
    * and private state data.
    */
   readonly state$: Observable<BBoardDerivedState>;
+
+  /**
+   * Updates the allowlist Merkle root on the bulletin board contract.
+   *
+   * @param newRoot The 32-byte Merkle root of the authorized allowlist.
+   */
+  async updateAllowlistRoot(newRoot: Uint8Array): Promise<void> {
+    this.logger?.info(`updatingAllowlistRoot: ${toHex(newRoot)}`);
+
+    const txData = await this.deployedContract.callTx.updateAllowlistRoot(newRoot);
+
+    this.logger?.trace({
+      transactionAdded: {
+        circuit: 'updateAllowlistRoot',
+        txHash: txData.public.txHash,
+        blockHeight: txData.public.blockHeight,
+      },
+    });
+  }
 
   /**
    * Attempts to post a given message to the bulletin board.

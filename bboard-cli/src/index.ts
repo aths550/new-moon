@@ -180,7 +180,8 @@ You can do one of the following:
   3. Display the current ledger state (known by everyone)
   4. Display the current private state (known only to this DApp instance)
   5. Display the current derived state (known only to this DApp instance)
-  6. Exit
+  6. Update allowlist Merkle root
+  7. Exit
 Which would you like to do? `;
 
 const mainLoop = async (providers: BBoardProviders, rli: Interface, logger: Logger): Promise<void> => {
@@ -215,7 +216,17 @@ const mainLoop = async (providers: BBoardProviders, rli: Interface, logger: Logg
           case '5':
             displayDerivedState(currentState, logger);
             break;
-          case '6':
+          case '6': {
+            const rootHex = await rli.question('Enter new 32-byte Merkle root (hex string): ');
+            const rootBytes = Buffer.from(rootHex.replace(/^0x/, ''), 'hex');
+            if (rootBytes.length !== 32) {
+              logger.error('Invalid Merkle root length. Must be 32 bytes (64 hex chars).');
+            } else {
+              await bboardApi.updateAllowlistRoot(rootBytes);
+            }
+            break;
+          }
+          case '7':
             logger.info('Exiting...');
             return;
           default:

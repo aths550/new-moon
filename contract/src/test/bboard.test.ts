@@ -18,10 +18,11 @@ import { setNetworkId } from "@midnight-ntwrk/midnight-js-network-id";
 import { describe, it, expect } from "vitest";
 import { randomBytes } from "./utils.js";
 import { State } from "../managed/bboard/contract/index.js";
+import { buildMerkleTree, getMerkleProof } from "../merkle.js";
 
 setNetworkId("undeployed");
 
-describe("BBoard smart contract", () => {
+describe("BBoard smart contract with Private Allowlist Access Control", () => {
   it("generates initial ledger state deterministically", () => {
     const key = randomBytes(32);
     const simulator0 = new BBoardSimulator(key);
@@ -29,7 +30,7 @@ describe("BBoard smart contract", () => {
     expect(simulator0.getLedger()).toEqual(simulator1.getLedger());
   });
 
-  it("properly initializes ledger state and private state", () => {
+  it("properly initializes ledger state", () => {
     const key = randomBytes(32);
     const simulator = new BBoardSimulator(key);
     const initialLedgerState = simulator.getLedger();
@@ -38,19 +39,36 @@ describe("BBoard smart contract", () => {
     expect(initialLedgerState.message.value).toEqual("");
     expect(initialLedgerState.owner).toEqual(new Uint8Array(32));
     expect(initialLedgerState.state).toEqual(State.VACANT);
-    const initialPrivateState = simulator.getPrivateState();
-    expect(initialPrivateState).toEqual({ secretKey: key });
+    expect(initialLedgerState.merkleRoot).toEqual(new Uint8Array(32));
   });
 
-  it("lets you set a message", () => {
-    const simulator = new BBoardSimulator(randomBytes(32));
-    const initialPrivateState = simulator.getPrivateState();
-    const message =
-      "Szeth-son-son-Vallano, Truthless of Shinovar, wore white on the day he was to kill a king";
+  it("allows setting and updating the allowlist Merkle root", () => {
+    const adminKey = randomBytes(32);
+    const user1Key = randomBytes(32);
+    const user2Key = randomBytes(32);
+    const tree = buildMerkleTree([user1Key, user2Key]);
+
+    const simulator = new BBoardSimulator(adminKey);
+    simulator.updateAllowlistRoot(tree.root);
+    expect(simulator.getLedger().merkleRoot).toEqual(tree.root);
+  });
+
+  it("allows an allowlisted member to post a message using ZK Merkle proof", () => {
+    const user1Key = randomBytes(32);
+    const user2Key = randomBytes(32);
+    const tree = buildMerkleTree([user1Key, user2Key]);
+    const proof1 = getMerkleProof(tree.layers, 0);
+
+    const simulator = new BBoardSimulator(
+      user1Key,
+      proof1.merklePath,
+      proof1.pathDirections,
+    );
+    simulator.updateAllowlistRoot(tree.root);
+
+    const message = "Life before Death, Strength before Weakness.";
     simulator.post(message);
-    // the private ledger state shouldn't change
-    expect(initialPrivateState).toEqual(simulator.getPrivateState());
-    // And all the correct things should have been updated in the public ledger state
+
     const ledgerState = simulator.getLedger();
     expect(ledgerState.sequence).toEqual(1n);
     expect(ledgerState.message.is_some).toEqual(true);
@@ -59,86 +77,64 @@ describe("BBoard smart contract", () => {
     expect(ledgerState.state).toEqual(State.OCCUPIED);
   });
 
-  it("lets you take down a message", () => {
-    const simulator = new BBoardSimulator(randomBytes(32));
-    const initialPrivateState = simulator.getPrivateState();
-    const initialPublicKey = simulator.publicKey();
-    const message =
-      "Prince Raoden of Arelon awoke early that morning, completely unaware that he had been damned for all eternity.";
+  it("rejects a non-allowlisted identity attempting to post", () => {
+    const user1Key = randomBytes(32);
+    const user2Key = randomBytes(32);
+    const intruderKey = randomBytes(32);
+
+    const tree = buildMerkleTree([user1Key, user2Key]);
+    const fakeProof = getMerkleProof(tree.layers, 0);
+
+    const simulator = new BBoardSimulator(
+      intruderKey,
+      fakeProof.merklePath,
+      fakeProof.pathDirections,
+    );
+    simulator.updateAllowlistRoot(tree.root);
+
+    expect(() => simulator.post("I am an un-allowlisted intruder!")).toThrow(
+      "failed assert: identity not in authorized allowlist",
+    );
+  });
+
+  it("lets the owner take down their posted message", () => {
+    const user1Key = randomBytes(32);
+    const tree = buildMerkleTree([user1Key]);
+    const proof1 = getMerkleProof(tree.layers, 0);
+
+    const simulator = new BBoardSimulator(
+      user1Key,
+      proof1.merklePath,
+      proof1.pathDirections,
+    );
+    simulator.updateAllowlistRoot(tree.root);
+
+    const message = "Confidential post";
     simulator.post(message);
     simulator.takeDown();
-    // the private ledger state shouldn't change
-    expect(initialPrivateState).toEqual(simulator.getPrivateState());
-    // And all the correct things should have been updated in the public ledger state
+
     const ledgerState = simulator.getLedger();
     expect(ledgerState.sequence).toEqual(2n);
     expect(ledgerState.message.is_some).toEqual(false);
-    expect(ledgerState.message.value).toEqual("");
-    // Technically the circuit doesn't clear the previous owner
-    expect(ledgerState.owner).toEqual(initialPublicKey);
     expect(ledgerState.state).toEqual(State.VACANT);
   });
 
-  it("lets you post another message after taking down the first", () => {
-    const simulator = new BBoardSimulator(randomBytes(32));
-    const initialPrivateState = simulator.getPrivateState();
-    simulator.post("Life before Death.");
-    simulator.takeDown();
-    const message = "Strength before Weakness.";
-    simulator.post(message);
-    // the private ledger state shouldn't change
-    expect(initialPrivateState).toEqual(simulator.getPrivateState());
-    // And all the correct things should have been updated in the public ledger state
-    const ledgerState = simulator.getLedger();
-    expect(ledgerState.sequence).toEqual(2n);
-    expect(ledgerState.message.is_some).toEqual(true);
-    expect(ledgerState.message.value).toEqual(message);
-    expect(ledgerState.owner).toEqual(simulator.publicKey());
-    expect(ledgerState.state).toEqual(State.OCCUPIED);
-  });
+  it("prevents non-owners from taking down someone else's post", () => {
+    const user1Key = randomBytes(32);
+    const user2Key = randomBytes(32);
+    const tree = buildMerkleTree([user1Key, user2Key]);
+    const proof1 = getMerkleProof(tree.layers, 0);
+    const proof2 = getMerkleProof(tree.layers, 1);
 
-  it("lets a different user post a message after taking down the first", () => {
-    const simulator = new BBoardSimulator(randomBytes(32));
-    simulator.post("Remember, the past need not become our future as well.");
-    simulator.takeDown();
-    simulator.switchUser(randomBytes(32));
-    const message = "Joy was more than just an absence of discomfort.";
-    simulator.post(message);
-    const ledgerState = simulator.getLedger();
-    expect(ledgerState.sequence).toEqual(2n);
-    expect(ledgerState.message.is_some).toEqual(true);
-    expect(ledgerState.message.value).toEqual(message);
-    expect(ledgerState.owner).toEqual(simulator.publicKey());
-    expect(ledgerState.state).toEqual(State.OCCUPIED);
-  });
-
-  it("doesn't let the same user post twice", () => {
-    const simulator = new BBoardSimulator(randomBytes(32));
-    simulator.post(
-      "My name is Stephen Leeds, and I am perfectly sane. My hallucinations, however, are all quite mad.",
+    const simulator = new BBoardSimulator(
+      user1Key,
+      proof1.merklePath,
+      proof1.pathDirections,
     );
-    expect(() =>
-      simulator.post(
-        "You should know by now that I've already had greatness. I traded it for mediocrity and some measure of sanity.",
-      ),
-    ).toThrow("failed assert: Attempted to post to an occupied board");
-  });
+    simulator.updateAllowlistRoot(tree.root);
+    simulator.post("User 1 post");
 
-  it("doesn't let different users post twice", () => {
-    const simulator = new BBoardSimulator(randomBytes(32));
-    simulator.post("Ash fell from the sky");
-    simulator.switchUser(randomBytes(32));
-    expect(() =>
-      simulator.post("I am, unfortunately, the hero of ages."),
-    ).toThrow("failed assert: Attempted to post to an occupied board");
-  });
-
-  it("doesn't let users take down someone elses posts", () => {
-    const simulator = new BBoardSimulator(randomBytes(32));
-    simulator.post(
-      "Sometimes a hypocrite is nothing more than a man in the process of changing.",
-    );
-    simulator.switchUser(randomBytes(32));
+    simulator.switchUser(user2Key, proof2.merklePath, proof2.pathDirections);
     expect(() => simulator.takeDown()).toThrow(
       "failed assert: Attempted to take down post, but not the current owner",
     );

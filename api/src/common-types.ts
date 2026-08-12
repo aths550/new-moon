@@ -84,6 +84,7 @@ export type BBoardDerivedState = {
   readonly state: State;
   readonly sequence: bigint;
   readonly message: string | undefined;
+  readonly merkleRoot: Uint8Array;
 
   /**
    * A readonly flag that determines if the current message was posted by the current user.

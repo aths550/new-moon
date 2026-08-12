@@ -30,6 +30,8 @@ export ledger sequence: Counter;
 
 export ledger owner: Bytes<32>;
 
+export ledger merkleRoot: Bytes<32>;
+
 constructor() {
   state = State.VACANT;
   message = none<Opaque<"string">>();
@@ -37,10 +39,50 @@ constructor() {
 }
 
 witness localSecretKey(): Bytes<32>;
+witness localMerklePath(): Vector<8, Bytes<32>>;
+witness localPathDirections(): Vector<8, Boolean>;
+
+export circuit updateAllowlistRoot(newRoot: Bytes<32>): [] {
+  merkleRoot = disclose(newRoot);
+}
 
 export circuit post(newMessage: Opaque<"string">): [] {
   assert(state == State.VACANT, "Attempted to post to an occupied board");
-  owner = disclose(publicKey(localSecretKey(), sequence as Field as Bytes<32>));
+
+  const sk = localSecretKey();
+  const merklePath = localMerklePath();
+  const pathDirections = localPathDirections();
+
+  const leaf = persistentHash<Bytes<32>>(sk);
+
+  const h0 = pathDirections[0]
+    ? persistentHash<[Bytes<32>, Bytes<32>]>([merklePath[0], leaf])
+    : persistentHash<[Bytes<32>, Bytes<32>]>([leaf, merklePath[0]]);
+  const h1 = pathDirections[1]
+    ? persistentHash<[Bytes<32>, Bytes<32>]>([merklePath[1], h0])
+    : persistentHash<[Bytes<32>, Bytes<32>]>([h0, merklePath[1]]);
+  const h2 = pathDirections[2]
+    ? persistentHash<[Bytes<32>, Bytes<32>]>([merklePath[2], h1])
+    : persistentHash<[Bytes<32>, Bytes<32>]>([h1, merklePath[2]]);
+  const h3 = pathDirections[3]
+    ? persistentHash<[Bytes<32>, Bytes<32>]>([merklePath[3], h2])
+    : persistentHash<[Bytes<32>, Bytes<32>]>([h2, merklePath[3]]);
+  const h4 = pathDirections[4]
+    ? persistentHash<[Bytes<32>, Bytes<32>]>([merklePath[4], h3])
+    : persistentHash<[Bytes<32>, Bytes<32>]>([h3, merklePath[4]]);
+  const h5 = pathDirections[5]
+    ? persistentHash<[Bytes<32>, Bytes<32>]>([merklePath[5], h4])
+    : persistentHash<[Bytes<32>, Bytes<32>]>([h4, merklePath[5]]);
+  const h6 = pathDirections[6]
+    ? persistentHash<[Bytes<32>, Bytes<32>]>([merklePath[6], h5])
+    : persistentHash<[Bytes<32>, Bytes<32>]>([h5, merklePath[6]]);
+  const h7 = pathDirections[7]
+    ? persistentHash<[Bytes<32>, Bytes<32>]>([merklePath[7], h6])
+    : persistentHash<[Bytes<32>, Bytes<32>]>([h6, merklePath[7]]);
+
+  assert(h7 == merkleRoot, "identity not in authorized allowlist");
+
+  owner = disclose(publicKey(sk, sequence as Field as Bytes<32>));
   message = disclose(some<Opaque<"string">>(newMessage));
   state = State.OCCUPIED;
 }
@@ -58,3 +100,4 @@ export circuit takeDown(): Opaque<"string"> {
 export circuit publicKey(sk: Bytes<32>, sequence: Bytes<32>): Bytes<32> {
   return persistentHash<Vector<3, Bytes<32>>>([pad(32, "bboard:pk:"), sequence, sk]);
 }
+

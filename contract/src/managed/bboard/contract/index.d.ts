@@ -4,14 +4,20 @@ export enum State { VACANT = 0, OCCUPIED = 1 }
 
 export type Witnesses<PS> = {
   localSecretKey(context: __compactRuntime.WitnessContext<Ledger, PS>): [PS, Uint8Array];
+  localMerklePath(context: __compactRuntime.WitnessContext<Ledger, PS>): [PS, Uint8Array[]];
+  localPathDirections(context: __compactRuntime.WitnessContext<Ledger, PS>): [PS, boolean[]];
 }
 
 export type ImpureCircuits<PS> = {
+  updateAllowlistRoot(context: __compactRuntime.CircuitContext<PS>,
+                      newRoot_0: Uint8Array): __compactRuntime.CircuitResults<PS, []>;
   post(context: __compactRuntime.CircuitContext<PS>, newMessage_0: string): __compactRuntime.CircuitResults<PS, []>;
   takeDown(context: __compactRuntime.CircuitContext<PS>): __compactRuntime.CircuitResults<PS, string>;
 }
 
 export type ProvableCircuits<PS> = {
+  updateAllowlistRoot(context: __compactRuntime.CircuitContext<PS>,
+                      newRoot_0: Uint8Array): __compactRuntime.CircuitResults<PS, []>;
   post(context: __compactRuntime.CircuitContext<PS>, newMessage_0: string): __compactRuntime.CircuitResults<PS, []>;
   takeDown(context: __compactRuntime.CircuitContext<PS>): __compactRuntime.CircuitResults<PS, string>;
 }
@@ -21,6 +27,8 @@ export type PureCircuits = {
 }
 
 export type Circuits<PS> = {
+  updateAllowlistRoot(context: __compactRuntime.CircuitContext<PS>,
+                      newRoot_0: Uint8Array): __compactRuntime.CircuitResults<PS, []>;
   post(context: __compactRuntime.CircuitContext<PS>, newMessage_0: string): __compactRuntime.CircuitResults<PS, []>;
   takeDown(context: __compactRuntime.CircuitContext<PS>): __compactRuntime.CircuitResults<PS, string>;
   publicKey(context: __compactRuntime.CircuitContext<PS>,
@@ -33,6 +41,7 @@ export type Ledger = {
   readonly message: { is_some: boolean, value: string };
   readonly sequence: bigint;
   readonly owner: Uint8Array;
+  readonly merkleRoot: Uint8Array;
 }
 
 export type ContractReferenceLocations = any;

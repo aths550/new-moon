@@ -4,6 +4,25 @@
   "runtime-version": "0.16.0",
   "circuits": [
     {
+      "name": "updateAllowlistRoot",
+      "pure": false,
+      "proof": true,
+      "arguments": [
+        {
+          "name": "newRoot",
+          "type": {
+            "type-name": "Bytes",
+            "length": 32
+          }
+        }
+      ],
+      "result-type": {
+        "type-name": "Tuple",
+        "types": [
+        ]
+      }
+    },
+    {
       "name": "post",
       "pure": false,
       "proof": true,
@@ -68,6 +87,31 @@
         "type-name": "Bytes",
         "length": 32
       }
+    },
+    {
+      "name": "localMerklePath",
+      "arguments": [
+      ],
+      "result type": {
+        "type-name": "Vector",
+        "length": 8,
+        "type": {
+          "type-name": "Bytes",
+          "length": 32
+        }
+      }
+    },
+    {
+      "name": "localPathDirections",
+      "arguments": [
+      ],
+      "result type": {
+        "type-name": "Vector",
+        "length": 8,
+        "type": {
+          "type-name": "Boolean"
+        }
+      }
     }
   ],
   "contracts": [
@@ -121,6 +165,16 @@
     {
       "name": "owner",
       "index": 3,
+      "exported": true,
+      "storage": "Cell",
+      "type": {
+        "type-name": "Bytes",
+        "length": 32
+      }
+    },
+    {
+      "name": "merkleRoot",
+      "index": 4,
       "exported": true,
       "storage": "Cell",
       "type": {

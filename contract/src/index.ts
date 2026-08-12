@@ -17,6 +17,7 @@ import { CompiledContract } from "@midnight-ntwrk/midnight-js-protocol/compact-j
 
 export * from "./managed/bboard/contract/index.js";
 export * from "./witnesses";
+export * from "./merkle.js";
 
 import * as CompiledBBoardContract from "./managed/bboard/contract/index.js";
 import * as Witnesses from "./witnesses";

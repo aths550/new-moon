@@ -26,7 +26,11 @@ import {
   type Ledger,
   ledger,
 } from "../managed/bboard/contract/index.js";
-import { type BBoardPrivateState, witnesses } from "../witnesses.js";
+import {
+  type BBoardPrivateState,
+  createBBoardPrivateState,
+  witnesses,
+} from "../witnesses.js";
 
 /**
  * Serves as a testbed to exercise the contract in tests
@@ -35,14 +39,23 @@ export class BBoardSimulator {
   readonly contract: Contract<BBoardPrivateState>;
   circuitContext: CircuitContext<BBoardPrivateState>;
 
-  constructor(secretKey: Uint8Array) {
+  constructor(
+    secretKey: Uint8Array,
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    merklePath: Uint8Array[] = Array(8).fill(new Uint8Array(32)),
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    pathDirections: boolean[] = Array(8).fill(false),
+  ) {
     this.contract = new Contract<BBoardPrivateState>(witnesses);
     const {
       currentPrivateState,
       currentContractState,
       currentZswapLocalState,
     } = this.contract.initialState(
-      createConstructorContext({ secretKey }, "0".repeat(64)),
+      createConstructorContext(
+        createBBoardPrivateState(secretKey, merklePath, pathDirections),
+        "0".repeat(64),
+      ),
     );
     this.circuitContext = {
       currentPrivateState,
@@ -55,15 +68,26 @@ export class BBoardSimulator {
     };
   }
 
-  /***
-   * Switch to a different secret key for a different user
-   *
-   * TODO: is there a nicer abstraction for testing multi-user dApps?
-   */
-  public switchUser(secretKey: Uint8Array) {
-    this.circuitContext.currentPrivateState = {
+  public switchUser(
+    secretKey: Uint8Array,
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    merklePath: Uint8Array[] = Array(8).fill(new Uint8Array(32)),
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    pathDirections: boolean[] = Array(8).fill(false),
+  ) {
+    this.circuitContext.currentPrivateState = createBBoardPrivateState(
       secretKey,
-    };
+      merklePath,
+      pathDirections,
+    );
+  }
+
+  public updateAllowlistRoot(newRoot: Uint8Array): Ledger {
+    this.circuitContext = this.contract.impureCircuits.updateAllowlistRoot(
+      this.circuitContext,
+      newRoot,
+    ).context;
+    return ledger(this.circuitContext.currentQueryContext.state);
   }
 
   public getLedger(): Ledger {
@@ -75,7 +99,6 @@ export class BBoardSimulator {
   }
 
   public post(message: string): Ledger {
-    // Update the current context to be the result of executing the circuit.
     this.circuitContext = this.contract.impureCircuits.post(
       this.circuitContext,
       message,
