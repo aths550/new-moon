@@ -1,17 +1,40 @@
-# Bulletin Board DApp
+# Midnight Network Bulletin Board DApp ("new-moon")
 
-This project is built on the [Midnight Network](https://midnight.network/).
+This project is a privacy-preserving Decentralized Application (DApp) built on the [Midnight Network](https://midnight.network/). It demonstrates state transition logic, zero-knowledge proof generation, and smart contract interaction on the Midnight Preview & Preprod testnets using the Compact smart contract language.
 
-[![Generic badge](https://img.shields.io/badge/Compact%20Compiler-0.30.0-1abc9c.svg)](https://shields.io/)
+[![Generic badge](https://img.shields.io/badge/Compact%20Compiler-0.31.0-1abc9c.svg)](https://shields.io/)
 [![Generic badge](https://img.shields.io/badge/TypeScript-5.9.3-blue.svg)](https://shields.io/)
 
+---
 
-> **Use this repo as a template. Do not fork it.**
->  
-> This repository is intended to be used via GitHub’s “Use this template” flow.  
-> Forking this repo is discouraged, as forks are not tracked as independent projects.
+## Initial Product Idea
 
-A Midnight smart contract example demonstrating a simple one-item bulletin board with zero-knowledge proofs on testnet. Users can post a single message at a time, and only the message author can remove it.
+**Midnight Bulletin Board** is a zero-knowledge confidential communication platform where users can publish messages to an on-chain bulletin board while proving authorship without revealing private identity keys. By leveraging Midnight's private witness mechanics, the contract ensures that only the message creator can modify or take down their posted content, preventing impersonation while keeping user identity zero-knowledge private.
+
+---
+
+## Public State vs. Private Witness Architecture
+
+Midnight smart contracts separate contract execution into **Public State** and **Private Witness**:
+
+- **Public State (Ledger)**:
+  - Stored on the public Midnight blockchain consensus ledger, accessible to all network participants.
+  - In this contract, the ledger maintains the current bulletin board state (`vacant` or `occupied`), the active message string, the message sequence number, and the public owner hash derived from the author's public key.
+
+- **Private Witness (DApp Local State)**:
+  - Kept strictly off-chain within the user's local DApp instance and executed inside local Zero-Knowledge circuits.
+  - The private witness includes the author's raw secret key (`secretKey`). When posting or taking down a message, the Compact circuit generates a zero-knowledge proof that the user possesses the matching secret key corresponding to the public owner hash without ever exposing the secret key to the blockchain or indexer.
+
+---
+
+## Deployed Contract Information
+
+- **Network**: Midnight Preview Network
+- **Deployed Contract Address**: `6709ac8489c3b02338492ff95103aaeeb675f1598c51a51e27ee30ebe5b9c1e9`
+- **Dust Registration Tx ID**: `00889f45a22d14eafac9498fd8e1a30c87f445e5d3eb4091a288b04690ea1f1927`
+- **Verified On-Chain State**: Message: `"new moon test post"` | Sequence: `1` | State: `occupied`
+
+---
 
 ## Project Structure
 
