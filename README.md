@@ -1,41 +1,49 @@
 # Midnight Network Bulletin Board DApp ("new-moon")
 
-This project is a privacy-preserving Decentralized Application (DApp) built on the [Midnight Network](https://midnight.network/). It demonstrates state transition logic, zero-knowledge proof generation, smart contract interaction, and Lace wallet integration on the Midnight Preview & Preprod testnets using the Compact smart contract language.
+This project is a privacy-preserving Decentralized Application (DApp) built on the [Midnight Network](https://midnight.network/). It demonstrates state transition logic, zero-knowledge proof generation, smart contract interaction, CI/CD automated testing pipelines, and Lace wallet integration on the Midnight Preview & Preprod testnets using the Compact smart contract language.
 
-[![Generic badge](https://img.shields.io/badge/Level--2-Waxing%20Crescent-6366f1.svg)](https://shields.io/)
-[![Generic badge](https://img.shields.io/badge/Compact%20Compiler-0.31.0-1abc9c.svg)](https://shields.io/)
-[![Generic badge](https://img.shields.io/badge/TypeScript-5.9.3-blue.svg)](https://shields.io/)
-
----
-
-## Initial Product Idea
-
-**Midnight Bulletin Board** is a zero-knowledge confidential communication platform where users can publish messages to an on-chain bulletin board while proving authorship without revealing private identity keys. By leveraging Midnight's private witness mechanics, the contract ensures that only the message creator can modify or take down their posted content, preventing impersonation while keeping user identity zero-knowledge private.
+[![Level 3 - First Quarter](https://img.shields.io/badge/Level--3-First%20Quarter-6366f1.svg)](https://midnight.network/)
+[![CI Status](https://github.com/aths550/new-moon/actions/workflows/ci.yaml/badge.svg)](https://github.com/aths550/new-moon/actions/workflows/ci.yaml)
+[![Compact Compiler](https://img.shields.io/badge/Compact%20Compiler-0.31.0-1abc9c.svg)](https://midnight.network/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9.3-blue.svg)](https://www.typescriptlang.org/)
 
 ---
 
-## Privacy Claim & Observable Behavior (Level 2)
+## Level 3 Product Proposal: Private Allowlist Access Control
 
-**Privacy Claim**: The DApp proves that a user owns the secret authorization key required to modify or remove a bulletin board message without revealing the secret key or identity to the blockchain, indexer, or public network.
+### 1. Problem Statement
+In traditional blockchain access control systems (NFT gating, DAO governance, exclusive APIs), proving membership in an allowlist requires submitting an address or cryptographic signature on-chain. This publicly exposes user identity, wallet holdings, and cross-dApp transaction history to chain analysis.
 
-- **Observable Behavior**: When invoking the `post` or `takeDown` circuits from the web frontend:
-  1. The user's browser executes local zero-knowledge circuits using `@midnight-ntwrk/midnight-js-http-client-proof-provider` and `proof-server`.
-  2. A Zero-Knowledge Proof (ZKP) is generated asserting knowledge of `secretKey` that hashes to the public `owner` recorded on the ledger.
-  3. The resulting transaction contains only the public proof, public state transition, and balance adjustments — leaving the author's private key 100% confidential.
+### 2. Solution Proposal (Midnight ZK Allowlist)
+By leveraging Midnight's private witness mechanics, users can prove membership in a private allowlist (or claim access rights) by generating a zero-knowledge proof locally inside their browser. The smart contract verifies the ZK proof on-chain without revealing the user's wallet address, identity seed, or membership index.
+
+### 3. Key User Flow
+1. **Issuer Phase**: Merkle root of allowed identity hashes is committed to the Midnight public ledger.
+2. **User Phase**: User provides their private secret key and Merkle membership proof as a **Private Witness** to local Compact circuits.
+3. **Verification Phase**: Local proof-server constructs a ZK proof asserting valid allowlist inclusion.
+4. **On-Chain Action**: The smart contract verifies the proof and grants access (e.g. posting a message, minting, or voting) while leaving the user's identity 100% confidential.
 
 ---
 
-## Public State vs. Private Witness Architecture
+## Privacy Model: What an Observer Can and Cannot Learn
 
-Midnight smart contracts separate contract execution into **Public State** and **Private Witness**:
+| Observer Perspective | Information Available / Hidden |
+| :--- | :--- |
+| **What an Observer CAN Learn** (Public Ledger) | • Smart contract deployment address (`0200...` / `6709...`)<br>• Current board state (`vacant` or `occupied`)<br>• Active message text payload<br>• Incremental sequence number (e.g. sequence `1`)<br>• Public owner commitment hash<br>• On-chain block height and gas/dust fee transaction records |
+| **What an Observer CANNOT Learn** (Private Witness) | • The author's raw secret key (`secretKey`) or wallet seed<br>• User's real-world identity, IP address, or Midnight wallet address<br>• Linkability between actions performed by the same user across different sessions<br>• Local unposted draft content or private DApp state store |
 
-- **Public State (Ledger)**:
-  - Stored on the public Midnight blockchain consensus ledger, accessible to all network participants.
-  - In this contract, the ledger maintains the current bulletin board state (`vacant` or `occupied`), the active message string, the message sequence number, and the public owner hash derived from the author's public key.
+---
 
-- **Private Witness (DApp Local State)**:
-  - Kept strictly off-chain within the user's local DApp instance and executed inside local Zero-Knowledge circuits.
-  - The private witness includes the author's raw secret key (`secretKey`). When posting or taking down a message, the Compact circuit generates a zero-knowledge proof that the user possesses the matching secret key corresponding to the public owner hash without ever exposing the secret key to the blockchain or indexer.
+## Automated CI/CD Pipeline
+
+The repository includes a GitHub Actions CI pipeline configured at [`.github/workflows/ci.yaml`](.github/workflows/ci.yaml) that automatically executes on every push to `main` and pull request:
+
+- **Compact Compiler Setup**: Installs `compactc 0.31.1` toolchain.
+- **Node.js Environment**: Configures Node.js 24 runtime and npm workspaces.
+- **Contract Typecheck & Linting**: Runs `tsc --noEmit` and `eslint`.
+- **Circuit Compilation**: Compiles `post` and `takeDown` ZK circuits.
+- **Unit Testing**: Executes Vitest suite (**9/9 passing tests**).
+- **Workspace Build**: Builds `bboard-cli`, `bboard-ui`, `bboard-api`, and `contract`.
 
 ---
 
@@ -45,6 +53,22 @@ Midnight smart contracts separate contract execution into **Public State** and *
 - **Preprod Network Contract Address**: `0200dbf964f541e1950883f5b2f539b66fd6111e46ce8e6e9551fbdd180114d5dd5b`
 - **Dust Registration Tx ID**: `00889f45a22d14eafac9498fd8e1a30c87f445e5d3eb4091a288b04690ea1f1927`
 - **Verified On-Chain State**: Message: `"new moon test post"` | Sequence: `1` | State: `occupied`
+
+---
+
+## Unit Testing Verification
+
+The test suite in [`contract/src/test/bboard.test.ts`](contract/src/test/bboard.test.ts) verifies all contract state transitions:
+
+```text
+ RUN  v4.1.10 /Users/atharvasandipnarute/new-moon/contract
+
+ ✓ src/test/bboard.test.ts (9 tests) 127ms
+
+ Test Files  1 passed (1)
+      Tests  9 passed (9)
+   Duration  248ms
+```
 
 ---
 
