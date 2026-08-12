@@ -1,7 +1,8 @@
 # Midnight Network Bulletin Board DApp ("new-moon")
 
-This project is a privacy-preserving Decentralized Application (DApp) built on the [Midnight Network](https://midnight.network/). It demonstrates state transition logic, zero-knowledge proof generation, and smart contract interaction on the Midnight Preview & Preprod testnets using the Compact smart contract language.
+This project is a privacy-preserving Decentralized Application (DApp) built on the [Midnight Network](https://midnight.network/). It demonstrates state transition logic, zero-knowledge proof generation, smart contract interaction, and Lace wallet integration on the Midnight Preview & Preprod testnets using the Compact smart contract language.
 
+[![Generic badge](https://img.shields.io/badge/Level--2-Waxing%20Crescent-6366f1.svg)](https://shields.io/)
 [![Generic badge](https://img.shields.io/badge/Compact%20Compiler-0.31.0-1abc9c.svg)](https://shields.io/)
 [![Generic badge](https://img.shields.io/badge/TypeScript-5.9.3-blue.svg)](https://shields.io/)
 
@@ -10,6 +11,17 @@ This project is a privacy-preserving Decentralized Application (DApp) built on t
 ## Initial Product Idea
 
 **Midnight Bulletin Board** is a zero-knowledge confidential communication platform where users can publish messages to an on-chain bulletin board while proving authorship without revealing private identity keys. By leveraging Midnight's private witness mechanics, the contract ensures that only the message creator can modify or take down their posted content, preventing impersonation while keeping user identity zero-knowledge private.
+
+---
+
+## Privacy Claim & Observable Behavior (Level 2)
+
+**Privacy Claim**: The DApp proves that a user owns the secret authorization key required to modify or remove a bulletin board message without revealing the secret key or identity to the blockchain, indexer, or public network.
+
+- **Observable Behavior**: When invoking the `post` or `takeDown` circuits from the web frontend:
+  1. The user's browser executes local zero-knowledge circuits using `@midnight-ntwrk/midnight-js-http-client-proof-provider` and `proof-server`.
+  2. A Zero-Knowledge Proof (ZKP) is generated asserting knowledge of `secretKey` that hashes to the public `owner` recorded on the ledger.
+  3. The resulting transaction contains only the public proof, public state transition, and balance adjustments — leaving the author's private key 100% confidential.
 
 ---
 
@@ -29,10 +41,18 @@ Midnight smart contracts separate contract execution into **Public State** and *
 
 ## Deployed Contract Information
 
-- **Network**: Midnight Preview Network
-- **Deployed Contract Address**: `6709ac8489c3b02338492ff95103aaeeb675f1598c51a51e27ee30ebe5b9c1e9`
+- **Preview Network Contract Address**: `6709ac8489c3b02338492ff95103aaeeb675f1598c51a51e27ee30ebe5b9c1e9`
+- **Preprod Network Contract Address**: `0200dbf964f541e1950883f5b2f539b66fd6111e46ce8e6e9551fbdd180114d5dd5b`
 - **Dust Registration Tx ID**: `00889f45a22d14eafac9498fd8e1a30c87f445e5d3eb4091a288b04690ea1f1927`
 - **Verified On-Chain State**: Message: `"new moon test post"` | Sequence: `1` | State: `occupied`
+
+---
+
+## Lace Wallet Integration (Level 2)
+
+The Web UI (`bboard-ui`) connects to the official Midnight Lace browser extension via `@midnight-ntwrk/dapp-connector-api`:
+- **Connect / Disconnect Button**: Embedded in top header (`Header.tsx`) with real-time status checking (`isEnabled()`, `getConnectionStatus()`).
+- **Transaction Balancing & Submission**: Delegates unsealed transaction balancing and proof submission directly to Lace wallet.
 
 ---
 
