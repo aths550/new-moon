@@ -8,7 +8,7 @@
   "scripts": {
     "postinstall": "patch-package",
     "compact": "npm run compact --workspace=@midnight-ntwrk/bboard-contract",
-    "build": "npm run build --workspaces",
+    "build": "npm run compact && npm run build --workspaces",
     "ci": "npm run ci --workspaces",
     "test": "npm run test --workspace=@midnight-ntwrk/bboard-contract"
   },
