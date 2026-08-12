@@ -18,6 +18,8 @@
     "packages": [
       "bboard-cli",
       "bboard-ui",
+      "auction-cli",
+      "auction-ui",
       "api",
       "contract"
     ]

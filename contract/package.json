@@ -1,5 +1,6 @@
 {
   "name": "@midnight-ntwrk/bboard-contract",
+  "version": "0.1.0",
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -13,11 +14,10 @@
     }
   },
   "scripts": {
-    "build": "rm -rf dist && tsc --project tsconfig.build.json && cp -Rf ./src/managed ./dist/managed && cp ./src/bboard.compact ./dist",
+    "build": "rm -rf dist && tsc --project tsconfig.build.json && cp -Rf ./src/managed ./dist/managed && cp ./src/bboard.compact ./dist && cp ./src/auction.compact ./dist 2>/dev/null; true",
     "ci": "npm run compact && npm run typecheck && npm run lint && npm run build && npm run test",
-    "compact": "compact compile src/bboard.compact ./src/managed/bboard",
+    "compact": "compact compile src/bboard.compact ./src/managed/bboard && compact compile src/auction.compact ./src/managed/auction",
     "lint": "eslint src",
-    "prepack": "npm build",
     "test": "vitest",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },

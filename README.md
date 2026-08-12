@@ -42,12 +42,12 @@ The repository includes a GitHub Actions CI pipeline configured at [`.github/wor
 - **Node.js Environment**: Configures Node.js 24 runtime and npm workspaces.
 - **Contract Typecheck & Linting**: Runs `tsc --noEmit` and `eslint`.
 - **Circuit Compilation**: Compiles `post` and `takeDown` ZK circuits.
-- **Unit Testing**: Executes Vitest suite (**7/7 passing tests**).
-- **Workspace Build**: Builds `bboard-cli`, `bboard-ui`, `bboard-api`, and `contract`.
+- **Unit Testing**: Executes Vitest suite (**16/16 passing tests** across `bboard.test.ts` and `auction.test.ts`).
+- **Workspace Build**: Builds `bboard-cli`, `bboard-ui`, `auction-cli`, `auction-ui`, `api`, and `contract`.
 
 ---
 
-## Deployed Contract Information
+## Deployed Contract Information & Sealed-Bid Auction Integration
 
 - **Preview Network Contract Address**: `6709ac8489c3b02338492ff95103aaeeb675f1598c51a51e27ee30ebe5b9c1e9`
 - **Preprod Network Contract Address**: `0200dbf964f541e1950883f5b2f539b66fd6111e46ce8e6e9551fbdd180114d5dd5b`
@@ -59,16 +59,17 @@ The repository includes a GitHub Actions CI pipeline configured at [`.github/wor
 
 ## Unit Testing Verification
 
-The test suite in [`contract/src/test/bboard.test.ts`](contract/src/test/bboard.test.ts) verifies all contract state transitions:
+The test suite in [`contract/src/test/`](contract/src/test/) verifies all contract state transitions:
 
 ```text
  RUN  v4.1.10 /Users/atharvasandipnarute/new-moon/contract
 
- ✓ src/test/bboard.test.ts (7 tests) 111ms
+ ✓ src/test/bboard.test.ts (7 tests) 118ms
+ ✓ src/test/auction.test.ts (9 tests) 188ms
 
- Test Files  1 passed (1)
-      Tests  7 passed (7)
-   Duration  244ms
+ Test Files  2 passed (2)
+      Tests  16 passed (16)
+   Duration  322ms
 ```
 
 ---
