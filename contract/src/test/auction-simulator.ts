@@ -12,7 +12,11 @@ import {
   type Ledger,
   ledger,
 } from "../managed/auction/contract/index.js";
-import { type AuctionPrivateState, createAuctionPrivateState, witnesses } from "../auction-witnesses.js";
+import {
+  type AuctionPrivateState,
+  createAuctionPrivateState,
+  witnesses,
+} from "../auction-witnesses.js";
 
 export class AuctionSimulator {
   readonly contract: Contract<AuctionPrivateState>;
@@ -22,8 +26,11 @@ export class AuctionSimulator {
     item: string,
     merkleRoot: Uint8Array,
     secretKey: Uint8Array,
-    merklePath: Uint8Array[] = Array(8).fill(new Uint8Array(32)),
-    pathDirections: boolean[] = Array(8).fill(false),
+    merklePath: Uint8Array[] = Array.from(
+      { length: 8 },
+      () => new Uint8Array(32),
+    ),
+    pathDirections: boolean[] = Array.from({ length: 8 }, () => false),
     bidAmount: bigint = 0n,
     bidSalt: Uint8Array = new Uint8Array(32),
   ) {
@@ -34,7 +41,13 @@ export class AuctionSimulator {
       currentZswapLocalState,
     } = this.contract.initialState(
       createConstructorContext(
-        createAuctionPrivateState(secretKey, merklePath, pathDirections, bidAmount, bidSalt),
+        createAuctionPrivateState(
+          secretKey,
+          merklePath,
+          pathDirections,
+          bidAmount,
+          bidSalt,
+        ),
         "0".repeat(64),
       ),
       item,
@@ -53,8 +66,11 @@ export class AuctionSimulator {
 
   public switchUser(
     secretKey: Uint8Array,
-    merklePath: Uint8Array[] = Array(8).fill(new Uint8Array(32)),
-    pathDirections: boolean[] = Array(8).fill(false),
+    merklePath: Uint8Array[] = Array.from(
+      { length: 8 },
+      () => new Uint8Array(32),
+    ),
+    pathDirections: boolean[] = Array.from({ length: 8 }, () => false),
     bidAmount: bigint = 0n,
     bidSalt: Uint8Array = new Uint8Array(32),
   ) {

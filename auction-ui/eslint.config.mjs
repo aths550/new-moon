@@ -1,28 +1,51 @@
 import eslint from "@eslint/js";
 import tseslint from "typescript-eslint";
-import eslintConfigPrettier from "eslint-config-prettier";
+import reactPlugin from "eslint-plugin-react";
+import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended";
 import globals from "globals";
 
-export default tseslint.config(
-  eslint.configs.recommended,
-  ...tseslint.configs.recommended,
-  eslintConfigPrettier,
+const config = tseslint.config(
   {
-    languageOptions: {
-      ecmaVersion: 2022,
-      sourceType: "module",
-      globals: {
-        ...globals.node,
+    ignores: ["eslint.config.mjs", "src/managed/"],
+  },
+  eslint.configs.recommended,
+  ...tseslint.configs.recommendedTypeChecked,
+  reactPlugin.configs.flat.recommended,
+  eslintPluginPrettierRecommended,
+  {
+    ignores: ["src/managed"],
+    rules: {
+      "@typescript-eslint/no-misused-promises": "off", // https://github.com/typescript-eslint/typescript-eslint/issues/5807
+      "@typescript-eslint/no-floating-promises": "warn",
+      "@typescript-eslint/promise-function-async": "off",
+      "@typescript-eslint/no-redeclare": "off",
+      "@typescript-eslint/consistent-type-definitions": "off",
+      "@typescript-eslint/explicit-function-return-type": "off",
+      "@typescript-eslint/no-unsafe-call": "warn",
+      "@typescript-eslint/no-unsafe-return": "warn",
+      "@typescript-eslint/no-unsafe-assignment": "warn",
+      "@typescript-eslint/no-unsafe-member-access": "warn",
+      "@typescript-eslint/no-unsafe-argument": "warn",
+    },
+    settings: {
+      react: {
+        version: "detect",
       },
     },
-    rules: {
-      "@typescript-eslint/no-unused-vars": [
-        "error",
-        { argsIgnorePattern: "^_" },
-      ],
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+        ...globals.node,
+        ...globals.jest,
+      },
+      parserOptions: {
+        ecmaVersion: "latest",
+        sourceType: "module",
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
+      },
     },
   },
-  {
-    ignores: ["dist/", "src/managed/", "vitest.config.ts"],
-  },
 );
+
+export default config;

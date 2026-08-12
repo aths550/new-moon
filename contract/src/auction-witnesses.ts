@@ -13,8 +13,11 @@ export type AuctionPrivateState = {
 
 export const createAuctionPrivateState = (
   secretKey: Uint8Array,
-  merklePath: Uint8Array[] = Array(8).fill(new Uint8Array(32)),
-  pathDirections: boolean[] = Array(8).fill(false),
+  merklePath: Uint8Array[] = Array.from(
+    { length: 8 },
+    () => new Uint8Array(32),
+  ),
+  pathDirections: boolean[] = Array.from({ length: 8 }, () => false),
   bidAmount: bigint = 0n,
   bidSalt: Uint8Array = new Uint8Array(32),
 ): AuctionPrivateState => ({

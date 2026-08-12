@@ -1,30 +1,43 @@
-// This file is part of midnightntwrk/example-bboard.
-// Copyright (C) Midnight Foundation
-// SPDX-License-Identifier: Apache-2.0
-// Licensed under the Apache License, Version 2.0 (the "License");
-// You may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
-import { CompiledContract } from "@midnight-ntwrk/midnight-js-protocol/compact-js";
+import * as BBoard from "./managed/bboard/contract/index.js";
+import * as Auction from "./managed/auction/contract/index.js";
+import {
+  type BBoardPrivateState,
+  witnesses as bboardWitnesses,
+} from "./witnesses.js";
+import {
+  type AuctionPrivateState,
+  witnesses as auctionWitnesses,
+} from "./auction-witnesses.js";
 
 export * from "./managed/bboard/contract/index.js";
-export * from "./witnesses";
-export * from "./merkle.js";
+export { BBoard, Auction };
 
-import * as CompiledBBoardContract from "./managed/bboard/contract/index.js";
-import * as Witnesses from "./witnesses";
+export type BBoardContract = BBoard.Contract<
+  BBoardPrivateState,
+  BBoard.Witnesses<BBoardPrivateState>
+>;
 
-export const CompiledBBoardContractContract = CompiledContract.make<
-  CompiledBBoardContract.Contract<Witnesses.BBoardPrivateState>
->("BBoard", CompiledBBoardContract.Contract<Witnesses.BBoardPrivateState>).pipe(
-  CompiledContract.withWitnesses(Witnesses.witnesses),
-  CompiledContract.withCompiledFileAssets("./managed/bboard"),
-);
+/* eslint-disable @typescript-eslint/no-explicit-any */
+export const CompiledBBoardContractContract: any = {
+  compiledContract: BBoard.Contract,
+  witnesses: bboardWitnesses,
+};
+
+export type AuctionContract = Auction.Contract<
+  AuctionPrivateState,
+  Auction.Witnesses<AuctionPrivateState>
+>;
+
+export const CompiledAuctionContractContract: any = {
+  compiledContract: Auction.Contract,
+  witnesses: auctionWitnesses,
+};
+/* eslint-enable @typescript-eslint/no-explicit-any */
+
+export * from "./witnesses.js";
+export {
+  createAuctionPrivateState,
+  witnesses as auctionWitnesses,
+  type AuctionPrivateState,
+} from "./auction-witnesses.js";
+export * from "./auction-merkle.js";

@@ -33,7 +33,11 @@ describe("Sealed-Bid Auction Smart Contract", () => {
     const user1 = randomBytes(32);
     const tree = buildMerkleTree([user1]);
 
-    const simulator = new AuctionSimulator("Vintage Watch", new Uint8Array(32), adminKey);
+    const simulator = new AuctionSimulator(
+      "Vintage Watch",
+      new Uint8Array(32),
+      adminKey,
+    );
     simulator.updateAllowlistRoot(tree.root);
 
     expect(simulator.getLedger().allowlistMerkleRoot).toEqual(tree.root);
@@ -44,7 +48,13 @@ describe("Sealed-Bid Auction Smart Contract", () => {
     const tree = buildMerkleTree([user1]);
     const proof1 = getMerkleProof(tree.layers, 0);
 
-    const simulator = new AuctionSimulator("Rare Midnight NFT", tree.root, user1, proof1.merklePath, proof1.pathDirections);
+    const simulator = new AuctionSimulator(
+      "Rare Midnight NFT",
+      tree.root,
+      user1,
+      proof1.merklePath,
+      proof1.pathDirections,
+    );
 
     const salt = randomBytes(32);
     const commitment = simulator.computeCommitmentHash(salt, 500n);
@@ -59,10 +69,18 @@ describe("Sealed-Bid Auction Smart Contract", () => {
     const tree = buildMerkleTree([user1]);
     const fakeProof = getMerkleProof(tree.layers, 0);
 
-    const simulator = new AuctionSimulator("Rare Midnight NFT", tree.root, intruder, fakeProof.merklePath, fakeProof.pathDirections);
+    const simulator = new AuctionSimulator(
+      "Rare Midnight NFT",
+      tree.root,
+      intruder,
+      fakeProof.merklePath,
+      fakeProof.pathDirections,
+    );
     const commitment = simulator.computeCommitmentHash(randomBytes(32), 1000n);
 
-    expect(() => simulator.commitBid(commitment)).toThrow("identity not in authorized allowlist");
+    expect(() => simulator.commitBid(commitment)).toThrow(
+      "identity not in authorized allowlist",
+    );
   });
 
   it("prevents double-bidding by the same allowlisted identity (nullifier check)", () => {
@@ -70,10 +88,20 @@ describe("Sealed-Bid Auction Smart Contract", () => {
     const tree = buildMerkleTree([user1]);
     const proof1 = getMerkleProof(tree.layers, 0);
 
-    const simulator = new AuctionSimulator("Rare Midnight NFT", tree.root, user1, proof1.merklePath, proof1.pathDirections);
+    const simulator = new AuctionSimulator(
+      "Rare Midnight NFT",
+      tree.root,
+      user1,
+      proof1.merklePath,
+      proof1.pathDirections,
+    );
     simulator.commitBid(simulator.computeCommitmentHash(randomBytes(32), 500n));
 
-    expect(() => simulator.commitBid(simulator.computeCommitmentHash(randomBytes(32), 600n))).toThrow("Identity has already committed a bid");
+    expect(() =>
+      simulator.commitBid(
+        simulator.computeCommitmentHash(randomBytes(32), 600n),
+      ),
+    ).toThrow("Identity has already committed a bid");
   });
 
   it("rejects reveal when revealed salt or amount does not match committed hash", () => {
@@ -90,16 +118,24 @@ describe("Sealed-Bid Auction Smart Contract", () => {
       proof1.merklePath,
       proof1.pathDirections,
       500n,
-      salt
+      salt,
     );
 
     const commitment = simulator.computeCommitmentHash(salt, 500n);
     simulator.commitBid(commitment);
     simulator.advanceToReveal();
 
-    simulator.switchUser(user1, proof1.merklePath, proof1.pathDirections, 999n, salt);
+    simulator.switchUser(
+      user1,
+      proof1.merklePath,
+      proof1.pathDirections,
+      999n,
+      salt,
+    );
 
-    expect(() => simulator.revealBid()).toThrow("Revealed amount and salt do not match commitment");
+    expect(() => simulator.revealBid()).toThrow(
+      "Revealed amount and salt do not match commitment",
+    );
   });
 
   it("correctly updates highestBidAmount when a bid is revealed", () => {
@@ -117,7 +153,7 @@ describe("Sealed-Bid Auction Smart Contract", () => {
       proof1.merklePath,
       proof1.pathDirections,
       amount,
-      salt
+      salt,
     );
 
     const commitment = simulator.computeCommitmentHash(salt, amount);
@@ -150,23 +186,41 @@ describe("Sealed-Bid Auction Smart Contract", () => {
       proof1.merklePath,
       proof1.pathDirections,
       amount1,
-      salt1
+      salt1,
     );
     const commitment1 = simulator.computeCommitmentHash(salt1, amount1);
     simulator.commitBid(commitment1);
 
-    simulator.switchUser(user2, proof2.merklePath, proof2.pathDirections, amount2, salt2);
+    simulator.switchUser(
+      user2,
+      proof2.merklePath,
+      proof2.pathDirections,
+      amount2,
+      salt2,
+    );
     const commitment2 = simulator.computeCommitmentHash(salt2, amount2);
     simulator.commitBid(commitment2);
 
     simulator.advanceToReveal();
 
-    simulator.switchUser(user1, proof1.merklePath, proof1.pathDirections, amount1, salt1);
+    simulator.switchUser(
+      user1,
+      proof1.merklePath,
+      proof1.pathDirections,
+      amount1,
+      salt1,
+    );
     simulator.revealBid();
     expect(simulator.getLedger().highestBidAmount).toEqual(1000n);
     expect(simulator.getLedger().highestBidCommitment).toEqual(commitment1);
 
-    simulator.switchUser(user2, proof2.merklePath, proof2.pathDirections, amount2, salt2);
+    simulator.switchUser(
+      user2,
+      proof2.merklePath,
+      proof2.pathDirections,
+      amount2,
+      salt2,
+    );
     simulator.revealBid();
 
     const finalLedger = simulator.getLedger();
@@ -189,7 +243,7 @@ describe("Sealed-Bid Auction Smart Contract", () => {
       proof1.merklePath,
       proof1.pathDirections,
       amount,
-      salt
+      salt,
     );
 
     const commitment = simulator.computeCommitmentHash(salt, amount);
