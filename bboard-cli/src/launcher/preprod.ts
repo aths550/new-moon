@@ -4,6 +4,7 @@ import tls from 'node:tls';
 
 dns.setDefaultResultOrder('ipv4first');
 
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument */
 const origNetConnect = net.connect;
 (net as any).connect = function (...args: any[]) {
   if (typeof args[0] === 'object' && args[0] !== null && args[0].family === undefined) {
@@ -19,6 +20,7 @@ const origTlsConnect = tls.connect;
   }
   return origTlsConnect.apply(this, args as any);
 };
+/* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument */
 
 import { createLogger } from '../logger-utils.js';
 import { run } from '../index.js';

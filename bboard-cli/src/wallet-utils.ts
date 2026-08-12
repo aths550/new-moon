@@ -51,8 +51,7 @@ const isProgressStrictlyComplete = (progress: unknown): boolean => {
   return (candidate.isStrictlyComplete as () => boolean)();
 };
 
-const isFacadeStateSynced = (state: FacadeState): boolean =>
-  isProgressStrictlyComplete(state.unshielded.progress);
+const isFacadeStateSynced = (state: FacadeState): boolean => isProgressStrictlyComplete(state.unshielded.progress);
 
 export const syncWallet = (logger: Logger, wallet: WalletFacade, throttleTime = 2_000) => {
   logger.info('Syncing wallet...');
@@ -116,9 +115,7 @@ export const waitForUnshieldedFunds = async (
       wallet.state().pipe(
         Rx.tap((state: FacadeState) => {
           const balance = state.unshielded.balances[tokenType.raw] ?? 0n;
-          logger.info(
-            `Wallet sync emission: { synced=${isFacadeStateSynced(state)}, balance=${balance.toString()} }`,
-          );
+          logger.info(`Wallet sync emission: { synced=${isFacadeStateSynced(state)}, balance=${balance.toString()} }`);
         }),
         Rx.throttleTime(throttleTime),
         Rx.filter(

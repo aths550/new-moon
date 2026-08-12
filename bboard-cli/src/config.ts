@@ -80,7 +80,7 @@ export class PreviewTestEnvironment extends RemoteTestEnvironment {
   override start = async (): Promise<EnvironmentConfiguration> => {
     this.logger.info(`Starting test environment...`);
     const envConfig = this.getEnvironmentConfiguration();
-    (this as any).environmentConfiguration = envConfig;
+    (this as unknown as { environmentConfiguration: EnvironmentConfiguration }).environmentConfiguration = envConfig;
     this.logger.info(`Test environment configuration: ${JSON.stringify(envConfig)}`);
     await this.healthCheck();
     return envConfig;
@@ -119,7 +119,7 @@ export class PreprodTestEnvironment extends RemoteTestEnvironment {
   override start = async (): Promise<EnvironmentConfiguration> => {
     this.logger.info(`Starting test environment...`);
     const envConfig = this.getEnvironmentConfiguration();
-    (this as any).environmentConfiguration = envConfig;
+    (this as unknown as { environmentConfiguration: EnvironmentConfiguration }).environmentConfiguration = envConfig;
     this.logger.info(`Test environment configuration: ${JSON.stringify(envConfig)}`);
     await this.healthCheck();
     return envConfig;
