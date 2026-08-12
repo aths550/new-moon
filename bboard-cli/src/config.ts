@@ -70,12 +70,24 @@ export class PreviewTestEnvironment extends RemoteTestEnvironment {
     super(logger);
   }
 
+  override healthCheck = async (): Promise<void> => {
+    this.logger.info('Performing env health check...');
+    const proofServerUrl = this.getProofServerUrl();
+    const res = await fetch(`${proofServerUrl}/health`);
+    this.logger.info(`Connected to proof server ${proofServerUrl}: ${res.statusText}`);
+  };
+
+  override start = async (): Promise<EnvironmentConfiguration> => {
+    this.logger.info(`Starting test environment...`);
+    const envConfig = this.getEnvironmentConfiguration();
+    (this as any).environmentConfiguration = envConfig;
+    this.logger.info(`Test environment configuration: ${JSON.stringify(envConfig)}`);
+    await this.healthCheck();
+    return envConfig;
+  };
+
   private getProofServerUrl(): string {
-    const container = this.proofServerContainer as { getUrl(): string } | undefined;
-    if (!container) {
-      throw new Error('Proof server container is not available.');
-    }
-    return container.getUrl();
+    return process.env.PROOF_SERVER_URL ?? 'http://localhost:6300';
   }
 
   getEnvironmentConfiguration(): EnvironmentConfiguration {
@@ -86,7 +98,7 @@ export class PreviewTestEnvironment extends RemoteTestEnvironment {
       indexerWS: 'wss://indexer.preview.midnight.network/api/v4/graphql/ws',
       node: 'https://rpc.preview.midnight.network',
       nodeWS: 'wss://rpc.preview.midnight.network',
-      faucet: 'https://midnight-tmnight-preview.nethermind.dev/',
+      faucet: undefined,
       proofServer: this.getProofServerUrl(),
     };
   }
@@ -97,12 +109,24 @@ export class PreprodTestEnvironment extends RemoteTestEnvironment {
     super(logger);
   }
 
+  override healthCheck = async (): Promise<void> => {
+    this.logger.info('Performing env health check...');
+    const proofServerUrl = this.getProofServerUrl();
+    const res = await fetch(`${proofServerUrl}/health`);
+    this.logger.info(`Connected to proof server ${proofServerUrl}: ${res.statusText}`);
+  };
+
+  override start = async (): Promise<EnvironmentConfiguration> => {
+    this.logger.info(`Starting test environment...`);
+    const envConfig = this.getEnvironmentConfiguration();
+    (this as any).environmentConfiguration = envConfig;
+    this.logger.info(`Test environment configuration: ${JSON.stringify(envConfig)}`);
+    await this.healthCheck();
+    return envConfig;
+  };
+
   private getProofServerUrl(): string {
-    const container = this.proofServerContainer as { getUrl(): string } | undefined;
-    if (!container) {
-      throw new Error('Proof server container is not available.');
-    }
-    return container.getUrl();
+    return process.env.PROOF_SERVER_URL ?? 'http://localhost:6300';
   }
 
   getEnvironmentConfiguration(): EnvironmentConfiguration {
@@ -113,7 +137,7 @@ export class PreprodTestEnvironment extends RemoteTestEnvironment {
       indexerWS: 'wss://indexer.preprod.midnight.network/api/v4/graphql/ws',
       node: 'https://rpc.preprod.midnight.network',
       nodeWS: 'wss://rpc.preprod.midnight.network',
-      faucet: 'https://midnight-tmnight-preprod.nethermind.dev/',
+      faucet: undefined,
       proofServer: this.getProofServerUrl(),
     };
   }
