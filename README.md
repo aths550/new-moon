@@ -1,4 +1,4 @@
-# Midnight Network Bulletin Board DApp ("new-moon")
+# Sealed-Bid Auction DApp 🌔 ("new-moon")
 
 This project is a privacy-preserving Decentralized Application (DApp) built on the [Midnight Network](https://midnight.network/). It demonstrates state transition logic, zero-knowledge proof generation, smart contract interaction, CI/CD automated testing pipelines, and Lace wallet integration on the Midnight Preview & Preprod testnets using the Compact smart contract language.
 
