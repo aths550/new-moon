@@ -42,7 +42,7 @@ The repository includes a GitHub Actions CI pipeline configured at [`.github/wor
 - **Node.js Environment**: Configures Node.js 24 runtime and npm workspaces.
 - **Contract Typecheck & Linting**: Runs `tsc --noEmit` and `eslint`.
 - **Circuit Compilation**: Compiles `post` and `takeDown` ZK circuits.
-- **Unit Testing**: Executes Vitest suite (**9/9 passing tests**).
+- **Unit Testing**: Executes Vitest suite (**7/7 passing tests**).
 - **Workspace Build**: Builds `bboard-cli`, `bboard-ui`, `bboard-api`, and `contract`.
 
 ---
@@ -51,6 +51,7 @@ The repository includes a GitHub Actions CI pipeline configured at [`.github/wor
 
 - **Preview Network Contract Address**: `6709ac8489c3b02338492ff95103aaeeb675f1598c51a51e27ee30ebe5b9c1e9`
 - **Preprod Network Contract Address**: `0200dbf964f541e1950883f5b2f539b66fd6111e46ce8e6e9551fbdd180114d5dd5b`
+- **Preprod Wallet Address**: `mn_addr_preprod1ym662fy9l5pdengdlr9mde7gnyxh5ep8ng7hqm3d4dtux3stgpgqrdst0q` (Balance: `8000.0` tNIGHT)
 - **Dust Registration Tx ID**: `00889f45a22d14eafac9498fd8e1a30c87f445e5d3eb4091a288b04690ea1f1927`
 - **Verified On-Chain State**: Message: `"new moon test post"` | Sequence: `1` | State: `occupied`
 
@@ -63,11 +64,11 @@ The test suite in [`contract/src/test/bboard.test.ts`](contract/src/test/bboard.
 ```text
  RUN  v4.1.10 /Users/atharvasandipnarute/new-moon/contract
 
- ✓ src/test/bboard.test.ts (9 tests) 127ms
+ ✓ src/test/bboard.test.ts (7 tests) 111ms
 
  Test Files  1 passed (1)
-      Tests  9 passed (9)
-   Duration  248ms
+      Tests  7 passed (7)
+   Duration  244ms
 ```
 
 ---
