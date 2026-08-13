@@ -30,7 +30,7 @@ import { ttlOneHour } from "@midnight-ntwrk/midnight-js-utils";
 import { type WalletFacade } from "@midnight-ntwrk/wallet-sdk-facade";
 import type { Logger } from "pino";
 
-import { getInitialShieldedState } from "./wallet-utils";
+import { getInitialShieldedState } from "./wallet-utils.js";
 import {
   type DustWalletOptions,
   type EnvironmentConfiguration,
@@ -122,7 +122,7 @@ export class MidnightWalletProvider
       additionalFeeOverhead:
         env.walletNetworkId === "undeployed"
           ? 500_000_000_000_000_000n
-          : 1_000n,
+          : 0n,
       feeBlocksMargin: 5,
     };
     const builder =

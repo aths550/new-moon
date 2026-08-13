@@ -13,8 +13,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// import { webcrypto } from 'crypto';
-
 import { type WalletFacade } from "@midnight-ntwrk/wallet-sdk-facade";
 import {
   createKeystore,
@@ -54,7 +52,11 @@ export const generateDust = async (
   unshieldedState: UnshieldedWalletState,
   walletFacade: WalletFacade,
 ) => {
-  const dustState = await walletFacade.dust.waitForSyncedState();
+  const state = await rx.firstValueFrom(walletFacade.state());
+  /* eslint-disable @typescript-eslint/no-explicit-any */
+  const dustAddress = (state.dust as any).capabilities.keys.getAddress((state.dust as any).state);
+  /* eslint-enable @typescript-eslint/no-explicit-any */
+
   const networkId = getNetworkId();
   const unshieldedKeystore = createKeystore(
     getUnshieldedSeed(walletSeed),
@@ -75,19 +77,25 @@ export const generateDust = async (
     utxos,
     unshieldedKeystore.getPublicKey(),
     (payload) => unshieldedKeystore.signData(payload),
-    dustState.address,
+    dustAddress,
   );
   const transaction = await walletFacade.finalizeRecipe(recipe);
   const txId = await walletFacade.submitTransaction(transaction);
 
-  const dustBalance = await rx.firstValueFrom(
-    walletFacade.state().pipe(
-      rx.filter((s) => s.dust.balance(new Date()) > 0n),
-      rx.map((s) => s.dust.balance(new Date())),
-    ),
-  );
   logger.info(`Dust generation transaction submitted with txId: ${txId}`);
-  logger.info(`Receiver dust balance after generation: ${dustBalance}`);
+
+  try {
+    const dustBalance = await rx.firstValueFrom(
+      walletFacade.state().pipe(
+        rx.filter((s) => s.dust.balance(new Date()) > 0n),
+        rx.map((s) => s.dust.balance(new Date())),
+        rx.timeout(5000),
+      ),
+    );
+    logger.info(`Receiver dust balance after generation: ${dustBalance}`);
+  } catch {
+    logger.info("Dust generation transaction submitted, proceeding with deployment flow...");
+  }
 
   return txId;
 };

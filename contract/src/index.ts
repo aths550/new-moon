@@ -8,6 +8,7 @@ import {
   type AuctionPrivateState,
   witnesses as auctionWitnesses,
 } from "./auction-witnesses.js";
+import { CompiledContract } from "@midnight-ntwrk/compact-js";
 
 export * from "./managed/bboard/contract/index.js";
 export { BBoard, Auction };
@@ -17,22 +18,20 @@ export type BBoardContract = BBoard.Contract<
   BBoard.Witnesses<BBoardPrivateState>
 >;
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-export const CompiledBBoardContractContract: any = {
-  compiledContract: BBoard.Contract,
-  witnesses: bboardWitnesses,
-};
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call */
+export const CompiledBBoardContractContract: any = (
+  CompiledContract.withWitnesses as any
+)(bboardWitnesses)(CompiledContract.make("bboard", BBoard.Contract));
 
 export type AuctionContract = Auction.Contract<
   AuctionPrivateState,
   Auction.Witnesses<AuctionPrivateState>
 >;
 
-export const CompiledAuctionContractContract: any = {
-  compiledContract: Auction.Contract,
-  witnesses: auctionWitnesses,
-};
-/* eslint-enable @typescript-eslint/no-explicit-any */
+export const CompiledAuctionContractContract: any = (
+  CompiledContract.withWitnesses as any
+)(auctionWitnesses)(CompiledContract.make("auction", Auction.Contract));
+/* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call */
 
 export * from "./witnesses.js";
 export {

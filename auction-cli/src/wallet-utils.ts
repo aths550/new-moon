@@ -35,6 +35,7 @@ import {
 import { Logger } from "pino";
 import { UnshieldedAddress } from "@midnight-ntwrk/wallet-sdk-address-format";
 import { getNetworkId } from "@midnight-ntwrk/midnight-js-network-id";
+import { toHex } from "@midnight-ntwrk/midnight-js-utils";
 
 export const getInitialShieldedState = async (
   logger: Logger,
@@ -146,14 +147,17 @@ export const waitForUnshieldedFunds = async (
       unshieldedAddress.toString(),
     );
   }
-  const initialBalance = initialState.balances[tokenType.raw];
-  if (initialBalance === undefined || initialBalance === 0n) {
-    logger.info(`Your wallet initial balance is: 0 (not yet initialized)`);
-    logger.info(`Waiting to receive tokens...`);
+  /* eslint-disable @typescript-eslint/no-explicit-any */
+  const rawBytes = tokenType && (tokenType as any).raw ? (tokenType as any).raw : (tokenType as any) || new Uint8Array(32);
+  const hexKey = toHex(rawBytes);
+  /* eslint-enable @typescript-eslint/no-explicit-any */
+  const initialBalance = (initialState.balances as Record<string, bigint>)[hexKey] ?? 0n;
+  if (initialBalance === 0n) {
+    logger.info(`Your wallet initial balance is: 0 (waiting to receive tokens...)`);
     return Rx.firstValueFrom(
       wallet.state().pipe(
         Rx.tap((state: FacadeState) => {
-          const balance = state.unshielded.balances[tokenType.raw] ?? 0n;
+          const balance = (state.unshielded.balances as Record<string, bigint>)[hexKey] ?? Object.values(state.unshielded.balances || {}).reduce((acc, b) => acc + b, 0n);
           logger.info(
             `Wallet sync emission: { synced=${isFacadeStateSynced(state)}, balance=${balance.toString()} }`,
           );
@@ -162,7 +166,7 @@ export const waitForUnshieldedFunds = async (
         Rx.filter(
           (state: FacadeState) =>
             isFacadeStateSynced(state) &&
-            (state.unshielded.balances[tokenType.raw] ?? 0n) > 0n,
+            (((state.unshielded.balances as Record<string, bigint>)[hexKey] ?? 0n) > 0n || Object.values(state.unshielded.balances || {}).reduce((acc, b) => acc + b, 0n) > 0n),
         ),
         Rx.tap(() => logger.info("Sync complete")),
         Rx.tap((state: FacadeState) => {
