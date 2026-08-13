@@ -9,6 +9,10 @@
     "postinstall": "patch-package",
     "compact": "npm run compact --workspace=@midnight-ntwrk/bboard-contract",
     "build": "npm run compact && npm run build --workspace=@midnight-ntwrk/bboard-contract && npm run build --workspace=@midnight-ntwrk/bboard-api && npm run build --workspaces",
+    "build:contract": "npm run build --workspace=@midnight-ntwrk/bboard-contract",
+    "build:api": "npm run build --workspace=@midnight-ntwrk/bboard-api",
+    "build:ui": "npm run build --workspace=@midnight-ntwrk/auction-ui",
+    "build:vercel": "npm run build:contract && npm run build:api && npm run build:ui",
     "ci": "npm run ci --workspaces",
     "test": "npm run test --workspace=@midnight-ntwrk/bboard-contract"
   },
