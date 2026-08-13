@@ -2,10 +2,9 @@
 
 import {
   type CircuitContext,
-  QueryContext,
   sampleContractAddress,
   createConstructorContext,
-  CostModel,
+  createCircuitContext,
 } from "@midnight-ntwrk/compact-runtime";
 import {
   Contract,
@@ -53,15 +52,12 @@ export class AuctionSimulator {
       item,
       merkleRoot,
     );
-    this.circuitContext = {
-      currentPrivateState,
+    this.circuitContext = createCircuitContext(
+      sampleContractAddress(),
       currentZswapLocalState,
-      costModel: CostModel.initialCostModel(),
-      currentQueryContext: new QueryContext(
-        currentContractState.data,
-        sampleContractAddress(),
-      ),
-    };
+      currentContractState.data,
+      currentPrivateState,
+    );
   }
 
   public switchUser(

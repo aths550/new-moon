@@ -15,11 +15,10 @@
 
 import {
   type CircuitContext,
-  QueryContext,
   sampleContractAddress,
   convertFieldToBytes,
   createConstructorContext,
-  CostModel,
+  createCircuitContext,
 } from "@midnight-ntwrk/compact-runtime";
 import {
   Contract,
@@ -57,15 +56,12 @@ export class BBoardSimulator {
         "0".repeat(64),
       ),
     );
-    this.circuitContext = {
-      currentPrivateState,
+    this.circuitContext = createCircuitContext(
+      sampleContractAddress(),
       currentZswapLocalState,
-      costModel: CostModel.initialCostModel(),
-      currentQueryContext: new QueryContext(
-        currentContractState.data,
-        sampleContractAddress(),
-      ),
-    };
+      currentContractState.data,
+      currentPrivateState,
+    );
   }
 
   public switchUser(
