@@ -80,7 +80,7 @@ export class MidnightWalletProvider implements MidnightProvider, WalletProvider 
       const signedRecipe = await this.wallet.signRecipe(recipe, (payload) => this.unshieldedKeystore.signData(payload));
       return await this.wallet.finalizeRecipe(signedRecipe);
     } catch (err: unknown) {
-      this.logger.error(`balanceTx caught error: ${err}`);
+      this.logger.error(`balanceTx caught error: ${err instanceof Error ? err.message : String(err)}`);
       throw err;
     }
   }
