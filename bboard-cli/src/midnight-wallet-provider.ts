@@ -71,13 +71,18 @@ export class MidnightWalletProvider implements MidnightProvider, WalletProvider 
   }
 
   async balanceTx(tx: UnboundTransaction, ttl: Date = ttlOneHour()): Promise<FinalizedTransaction> {
-    const recipe = await this.wallet.balanceUnboundTransaction(
-      tx,
-      { shieldedSecretKeys: this.zswapSecretKeys, dustSecretKey: this.dustSecretKey },
-      { ttl },
-    );
-    const signedRecipe = await this.wallet.signRecipe(recipe, (payload) => this.unshieldedKeystore.signData(payload));
-    return this.wallet.finalizeRecipe(signedRecipe);
+    try {
+      const recipe = await this.wallet.balanceUnboundTransaction(
+        tx,
+        { shieldedSecretKeys: this.zswapSecretKeys, dustSecretKey: this.dustSecretKey },
+        { ttl },
+      );
+      const signedRecipe = await this.wallet.signRecipe(recipe, (payload) => this.unshieldedKeystore.signData(payload));
+      return await this.wallet.finalizeRecipe(signedRecipe);
+    } catch (err: unknown) {
+      this.logger.error(`balanceTx caught error: ${err}`);
+      throw err;
+    }
   }
 
   submitTx(tx: FinalizedTransaction): Promise<string> {

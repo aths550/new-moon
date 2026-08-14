@@ -96,6 +96,8 @@ Our contract was successfully deployed to the Preview network:
 
 ![Contract Deployed](assets/deployed_contract.png)
 
+**Deployed Contract Address**: `004b922277534496ea88552b352282a702614d1adaba3f4845037043f7013a51`
+
 
 
 ## 5. Formally Verified Test Suite (16/16 Passing Tests)
@@ -148,7 +150,7 @@ new-moon/
 
 ### Primary Network: Preview
 - **Target Network**: Midnight Preview (`https://rpc.preview.midnight.network`)
-- **Active Wallet Address**: *Pending generation* (A new Preview wallet will be generated and funded once deployment resumes).
+- **Active Wallet Address**: `mn_addr_preview104k4g7p2vs09gm4grs5z6appy3d6yw406yecpv3lpgg09hqel65qlhndeh` (Funded and actively deploying)
 - **Note on Previously Mentioned Address**: The address `mn_addr_preview1j50upgdyyxxydqdjt4fq7p8j5tc7g0zx7m8dcn54ew7sgjcfaauq7hlsrf` was provided as a testing baseline but its seed is confirmed lost/unavailable. It will remain permanently unusable for deployment.
 
 ### Historical Network: Preprod (Troubleshooting & Findings)

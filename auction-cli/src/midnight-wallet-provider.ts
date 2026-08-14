@@ -84,18 +84,23 @@ export class MidnightWalletProvider
     tx: UnboundTransaction,
     ttl: Date = ttlOneHour(),
   ): Promise<FinalizedTransaction> {
-    const recipe = await this.wallet.balanceUnboundTransaction(
-      tx,
-      {
-        shieldedSecretKeys: this.zswapSecretKeys,
-        dustSecretKey: this.dustSecretKey,
-      },
-      { ttl },
-    );
-    const signedRecipe = await this.wallet.signRecipe(recipe, (payload) =>
-      this.unshieldedKeystore.signData(payload),
-    );
-    return this.wallet.finalizeRecipe(signedRecipe);
+    try {
+      const recipe = await this.wallet.balanceUnboundTransaction(
+        tx,
+        {
+          shieldedSecretKeys: this.zswapSecretKeys,
+          dustSecretKey: this.dustSecretKey,
+        },
+        { ttl },
+      );
+      const signedRecipe = await this.wallet.signRecipe(recipe, (payload) =>
+        this.unshieldedKeystore.signData(payload),
+      );
+      return await this.wallet.finalizeRecipe(signedRecipe);
+    } catch (err: unknown) {
+      this.logger.error(`balanceTx caught error: ${err}`);
+      throw err;
+    }
   }
 
   submitTx(tx: FinalizedTransaction): Promise<string> {
@@ -122,7 +127,7 @@ export class MidnightWalletProvider
       additionalFeeOverhead:
         env.walletNetworkId === "undeployed"
           ? 500_000_000_000_000_000n
-          : 0n,
+          : 1_000n,
       feeBlocksMargin: 5,
     };
     const builder =
