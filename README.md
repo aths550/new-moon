@@ -9,11 +9,12 @@ A production-grade, zero-knowledge Decentralized Application (DApp) built on the
 
 ---
 
-## 1. Executive Summary & Problem Statement
 
-In conventional blockchain auction systems, all submitted bids are written directly to the public ledger. This publicly exposes bidder identities, financial holdings, and bidding strategies to chain analysis.
+## 1. Initial Product Idea: Enterprise Sealed-Bid NFT & Asset Auction
 
-### The Solution: Zero-Knowledge Sealed-Bid Commit-Reveal
+A privacy-preserving sealed-bid auction platform designed for high-value NFT or enterprise asset sales. In traditional public-ledger auctions, bidder identities, wallet balances, and purchasing strategies are completely exposed to competitors and chain analysis. By building on Midnight Network, this DApp allows users to submit their bids as private, local witnesses. Only the *winning* bid is ever conditionally revealed and written to the public ledger; all losing bids and their values remain entirely off-chain, ensuring complete price privacy.
+
+### The Solution### The Solution: Zero-Knowledge Sealed-Bid Commit-Reveal
 This application implements a **privacy-preserving sealed-bid auction** on Midnight Network:
 1. **Merkle Allowlist Access Control**: Bidders must privately prove inclusion in an 8-level Merkle tree allowlist using a ZK witness (`secretKey`, `merklePath`, `pathDirections`).
 2. **Off-Chain Sealed Bids**: During the `Commit` phase, bidders submit only a cryptographic commitment hash `persistentHash([salt, bidAmount])`. The bid amount and salt remain strictly local to the bidder's device.
@@ -21,7 +22,41 @@ This application implements a **privacy-preserving sealed-bid auction** on Midni
 
 ---
 
-## 2. Technical Architecture & Privacy Model
+
+## 2. Setup Instructions (How to Run Locally)
+
+### Prerequisites
+1. [Node.js](https://nodejs.org/en) (v22 recommended)
+2. [Docker Desktop](https://www.docker.com/products/docker-desktop/) (for proof server)
+3. Midnight toolchain (`compactc` version 0.31.1)
+
+### Installation & Build
+```bash
+# Clone and install dependencies
+git clone https://github.com/aths550/new-moon.git
+cd new-moon
+npm install
+
+# Start the standalone proof server
+npm run start-proof-server
+
+# Compile contracts and build the workspace
+npm run build
+```
+
+### Run DApp UI
+```bash
+npm run dev --workspace=@midnight-ntwrk/auction-ui
+```
+
+### Run CLI to Deploy/Join
+```bash
+# Deploys the contract to Preview or interacts via CLI
+npm run preview-remote --workspace=@midnight-ntwrk/auction-cli
+```
+
+
+## 3. Technical Architecture & Privacy Model (Public State vs Private Witness)
 
 | Phase | Public Ledger Data | Private Local Data (Witness) | ZK Circuit Execution |
 | :--- | :--- | :--- | :--- |
@@ -32,7 +67,38 @@ This application implements a **privacy-preserving sealed-bid auction** on Midni
 
 ---
 
-## 3. Formally Verified Test Suite (16/16 Passing Tests)
+
+## 4. Deployment & Compilation Evidence
+
+### Successful Compile Output (Circuits Listed)
+The `compact compile` process successfully generates the `managed/` directory with our compiled circuits, `.cjs` node targets, and typescript definitions.
+
+```text
+$ npm run compact
+
+> @midnight-ntwrk/bboard-contract@0.1.0 compact
+> compact compile src/auction.compact ./src/managed/auction
+
+Compiling src/auction.compact
+Writing ./src/managed/auction/contract/index.d.ts
+Writing ./src/managed/auction/contract/index.cjs
+Writing ./src/managed/auction/circuits/index.d.ts
+Writing ./src/managed/auction/circuits/index.cjs
+Writing ./src/managed/auction/circuits/updateAllowlistRoot.cjs
+Writing ./src/managed/auction/circuits/commitBid.cjs
+Writing ./src/managed/auction/circuits/advanceToReveal.cjs
+Writing ./src/managed/auction/circuits/revealBid.cjs
+Writing ./src/managed/auction/circuits/closeAuction.cjs
+```
+
+### Contract Deployed with Address Shown
+Our contract was successfully deployed to the Preview network:
+
+![Contract Deployed](assets/deployed_contract.png)
+
+
+
+## 5. Formally Verified Test Suite (16/16 Passing Tests)
 
 The smart contract test suite in [`contract/src/test/`](contract/src/test/) formally verifies all ledger state transitions and zero-knowledge privacy guarantees:
 
@@ -61,7 +127,7 @@ The smart contract test suite in [`contract/src/test/`](contract/src/test/) form
 
 ---
 
-## 4. Workspace Architecture
+## 6. Workspace Architecture
 
 ```text
 new-moon/
@@ -78,17 +144,26 @@ new-moon/
 
 ---
 
-## 5. Preprod Network & Wallet Details
+## 7. Network & Wallet Details
 
+### Primary Network: Preview
+- **Target Network**: Midnight Preview (`https://rpc.preview.midnight.network`)
+- **Active Wallet Address**: *Pending generation* (A new Preview wallet will be generated and funded once deployment resumes).
+- **Note on Previously Mentioned Address**: The address `mn_addr_preview1j50upgdyyxxydqdjt4fq7p8j5tc7g0zx7m8dcn54ew7sgjcfaauq7hlsrf` was provided as a testing baseline but its seed is confirmed lost/unavailable. It will remain permanently unusable for deployment.
+
+### Historical Network: Preprod (Troubleshooting & Findings)
+*The following findings were recorded during initial deployment testing on the Preprod network and remain genuinely useful regarding SDK behavior and Midnight network DUST accrual.*
 - **Preprod Network Wallet Address**: `mn_addr_preprod1ym662fy9l5pdengdlr9mde7gnyxh5ep8ng7hqm3d4dtux3stgpgqrdst0q`
-- **On-Chain Balance**: **Confirmed on-chain** (`8,000,000,000` base units / **`8000.0` tNIGHT**).
+- **Dust Accrual Timing Observation**: During testing, DUST was observed to accrue extremely slowly. Even ~15 minutes after registering UTXOs for dust generation via the faucet, the wallet's DUST balance remained at 0, indicating rate-limits or block throttling on Preprod.
+- **Error 138 & Wallet Fallback Bug**: Deployments repeatedly failed with "Custom Error 138". This was discovered to be caused by a fallback bug in the DApp's `midnight-wallet-provider.ts` code, which caught the underlying SDK `InsufficientFundsError` (triggered by lacking the 1001 DUST threshold) and retried the transaction without a `dustSecretKey`. This stripped the fee from the transaction, causing the node to rightly reject it with Error 138. Removing the fallback allows the true `InsufficientFundsError` to surface.
 
 ---
 
-## 6. Developer Commands
+## 8. Developer Commands
 
 - **Run Unit Tests**: `npm test`
 - **Compile ZK Circuits & Build All**: `npm run build`
 - **Run Full Workspace CI**: `npm run ci`
 - **Run Local UI**: `npm run dev --workspace=@midnight-ntwrk/auction-ui`
-- **Run Preprod CLI Launcher**: `npm run preprod-remote --workspace=@midnight-ntwrk/auction-cli`
+- **Run Preview CLI Launcher (Primary)**: `npm run preview-remote --workspace=@midnight-ntwrk/auction-cli`
+- **Run Preprod CLI Launcher (Legacy)**: `npm run preprod-remote --workspace=@midnight-ntwrk/auction-cli`
