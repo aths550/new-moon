@@ -19,6 +19,8 @@ import { deployContract, findDeployedContract } from '@midnight-ntwrk/midnight-j
 import { map, tap, type Observable } from 'rxjs';
 import { toHex } from '@midnight-ntwrk/midnight-js-utils';
 
+export const computeCommitment = Auction.pureCircuits.computeCommitment;
+
 export interface DeployedAuctionAPI {
   readonly deployedContractAddress: ContractAddress;
   readonly state$: Observable<AuctionDerivedState>;

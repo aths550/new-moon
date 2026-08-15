@@ -76,19 +76,15 @@ The `compact compile` process successfully generates the `managed/` directory wi
 ```text
 $ npm run compact
 
-> @midnight-ntwrk/bboard-contract@0.1.0 compact
-> compact compile src/auction.compact ./src/managed/auction
+> @midnight-ntwrk/sealed-bid-auction@0.1.0 compact
+> npm run compact --workspace=@midnight-ntwrk/bboard-contract
 
-Compiling src/auction.compact
-Writing ./src/managed/auction/contract/index.d.ts
-Writing ./src/managed/auction/contract/index.cjs
-Writing ./src/managed/auction/circuits/index.d.ts
-Writing ./src/managed/auction/circuits/index.cjs
-Writing ./src/managed/auction/circuits/updateAllowlistRoot.cjs
-Writing ./src/managed/auction/circuits/commitBid.cjs
-Writing ./src/managed/auction/circuits/advanceToReveal.cjs
-Writing ./src/managed/auction/circuits/revealBid.cjs
-Writing ./src/managed/auction/circuits/closeAuction.cjs
+
+> @midnight-ntwrk/bboard-contract@0.1.0 compact
+> compact compile src/bboard.compact ./src/managed/bboard && compact compile src/auction.compact ./src/managed/auction
+
+Compiling 3 circuits:
+Compiling 5 circuits:
 ```
 
 ### Contract Deployed with Address Shown
@@ -96,7 +92,7 @@ Our contract was successfully deployed to the Preview network:
 
 ![Contract Deployed](assets/deployed_contract.png)
 
-**Deployed Contract Address**: `004b922277534496ea88552b352282a702614d1adaba3f4845037043f7013a51`
+**Deployed Contract Address**: `804b922277534496ea88552b352282a702614d1adaba3f4845037043f7013a51`
 
 
 
@@ -107,13 +103,13 @@ The smart contract test suite in [`contract/src/test/`](contract/src/test/) form
 ```text
  RUN  v4.1.10 /Users/atharvasandipnarute/new-moon/contract
 
- ✓ src/test/bboard.test.ts (7 tests) 118ms
- ✓ src/test/auction.test.ts (9 tests) 188ms
+ ✓ src/test/bboard.test.ts (7 tests) 129ms
+ ✓ src/test/auction.test.ts (9 tests) 198ms
 
  Test Files  2 passed (2)
       Tests  16 passed (16)
-   Start at  01:04:29
-   Duration  322ms
+   Start at  21:08:30
+   Duration  368ms (transform 135ms, setup 0ms, import 194ms, tests 327ms, environment 0ms)
 ```
 
 ### Verified Test Cases:

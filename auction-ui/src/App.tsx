@@ -3,6 +3,7 @@ import { type Observable } from "rxjs";
 import { useDeployedAuctionContext } from "./hooks/useDeployedAuctionContext";
 import { type AuctionDeployment } from "./contexts/BrowserDeployedAuctionManager";
 import { type DeployedAuctionAPI, type AuctionDerivedState, computeCommitment, auctionPrivateStateKey } from "../../api/src/index.js";
+import { getBidderIdentity } from "./lib/identity.js";
 import {
   ThemeProvider,
   createTheme,
@@ -58,6 +59,19 @@ const App: React.FC = () => {
   const [walletStatus, setWalletStatus] = useState<WalletStatus>("disconnected");
   const [walletAddress, setWalletAddress] = useState<string | undefined>(undefined);
   const [auctionApi, setAuctionApi] = useState<DeployedAuctionAPI | null>(null);
+  const [localAllowlistRoot, setLocalAllowlistRoot] = useState<string>("none");
+  const [onChainAllowlistRoot, setOnChainAllowlistRoot] = useState<string>("none");
+
+  useEffect(() => {
+    if (contractAddress) {
+      const root = getBidderIdentity(contractAddress).merkleRoot;
+      setLocalAllowlistRoot(
+        Array.from(root)
+          .map((b) => b.toString(16).padStart(2, "0"))
+          .join(""),
+      );
+    }
+  }, [contractAddress]);
 
   useEffect(() => {
     if (apiProvider?.walletAddress$) {
@@ -106,6 +120,11 @@ const App: React.FC = () => {
             .join(""),
         );
         setCommitmentsCount(Number(state.commitmentCount));
+        setOnChainAllowlistRoot(
+          Array.from(state.allowlistMerkleRoot)
+            .map((b: number) => b.toString(16).padStart(2, "0"))
+            .join(""),
+        );
         if (state.state === 2) {
            setWinningAmount(state.winningAmount);
         }
@@ -144,6 +163,22 @@ const App: React.FC = () => {
     setStatusSeverity("info");
     setStatusMessage("Wallet disconnected");
   }, []);
+
+  const handleSyncAllowlist = useCallback(async () => {
+    if (!auctionApi) return;
+    try {
+      setStatusMessage("Submitting sync allowlist transaction to Lace wallet...");
+      setStatusSeverity("info");
+      const rootBytes = getBidderIdentity(contractAddress).merkleRoot;
+      await auctionApi.updateAllowlistRoot(rootBytes);
+      setStatusSeverity("success");
+      setStatusMessage("✅ Allowlist Merkle Root synced successfully! You are now authorized to bid.");
+    } catch (e: any) {
+      console.error(e);
+      setStatusSeverity("error");
+      setStatusMessage(`Failed to sync allowlist: ${e.message}`);
+    }
+  }, [auctionApi, contractAddress]);
 
   // 1. Commit Bid Action
   const handleCommitBid = useCallback(async () => {
@@ -407,6 +442,21 @@ const App: React.FC = () => {
                   </Button>
                 </Stack>
               </Box>
+
+              {/* Sync Allowlist Warning */}
+              {isWalletActive && onChainAllowlistRoot !== "none" && localAllowlistRoot !== "none" && onChainAllowlistRoot !== localAllowlistRoot && (
+                <Alert
+                  severity="warning"
+                  sx={{ mb: 2, borderRadius: 2 }}
+                  action={
+                    <Button color="inherit" size="small" variant="outlined" onClick={handleSyncAllowlist}>
+                      Sync Allowlist
+                    </Button>
+                  }
+                >
+                  Your local identity is not on the authorized allowlist. Click Sync Allowlist to add yourself.
+                </Alert>
+              )}
 
               <Divider sx={{ my: 2, borderColor: "rgba(255,255,255,0.08)" }} />
 
