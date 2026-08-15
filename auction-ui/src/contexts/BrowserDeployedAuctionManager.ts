@@ -320,15 +320,42 @@ const initializeProviders = async (
   };
 };
 
+const isCompatibleWallet = (wallet: unknown): wallet is InitialAPI =>
+  !!wallet &&
+  typeof wallet === "object" &&
+  "apiVersion" in wallet &&
+  semver.satisfies((wallet as InitialAPI).apiVersion, COMPATIBLE_CONNECTOR_API_VERSION);
+
 const getFirstCompatibleWallet = (): InitialAPI | undefined => {
   if (!window.midnight) return undefined;
-  return Object.values(window.midnight).find(
-    (wallet): wallet is InitialAPI =>
-      !!wallet &&
-      typeof wallet === "object" &&
-      "apiVersion" in wallet &&
-      semver.satisfies(wallet.apiVersion, COMPATIBLE_CONNECTOR_API_VERSION),
-  );
+  const wallets = Object.entries(window.midnight);
+
+  // 1. Prefer Lace by key name (mnLace is the standard key Lace uses)
+  for (const [key, wallet] of wallets) {
+    if (key.toLowerCase().includes("lace") && isCompatibleWallet(wallet)) {
+      return wallet;
+    }
+  }
+
+  // 2. Prefer Lace by name or rdns
+  for (const [, wallet] of wallets) {
+    if (
+      isCompatibleWallet(wallet) &&
+      (wallet.name?.toLowerCase().includes("lace") ||
+        wallet.rdns?.toLowerCase().includes("lace"))
+    ) {
+      return wallet;
+    }
+  }
+
+  // 3. Fall back to any compatible wallet
+  for (const [, wallet] of wallets) {
+    if (isCompatibleWallet(wallet)) {
+      return wallet;
+    }
+  }
+
+  return undefined;
 };
 
 const COMPATIBLE_CONNECTOR_API_VERSION = "4.x";
@@ -347,7 +374,7 @@ const connectToWallet = (
       filter((connectorAPI): connectorAPI is InitialAPI => !!connectorAPI),
       tap((connectorAPI) => {
         logger.info(
-          connectorAPI,
+          { name: connectorAPI.name, rdns: connectorAPI.rdns, apiVersion: connectorAPI.apiVersion },
           "Compatible wallet connector API found. Connecting.",
         );
       }),
@@ -363,13 +390,24 @@ const connectToWallet = (
           }),
       }),
       concatMap(async (initialAPI) => {
-        const connectedAPI = await initialAPI.connect(networkId);
-        const connectionStatus = await connectedAPI.getConnectionStatus();
-        logger.info(connectionStatus, "Wallet connector API enabled status");
-        return connectedAPI;
+        logger.info({ networkId }, "Calling initialAPI.connect(networkId)...");
+        console.log("[auction-ui] initialAPI keys:", Object.keys(initialAPI));
+        console.log("[auction-ui] initialAPI.name:", initialAPI.name, "rdns:", initialAPI.rdns, "apiVersion:", initialAPI.apiVersion);
+        console.log("[auction-ui] networkId being passed:", networkId);
+        try {
+          const connectedAPI = await initialAPI.connect(networkId);
+          const connectionStatus = await connectedAPI.getConnectionStatus();
+          logger.info(connectionStatus, "Wallet connector API enabled status");
+          console.log("[auction-ui] connectionStatus:", connectionStatus);
+          return connectedAPI;
+        } catch (connectError) {
+          console.error("[auction-ui] REAL ERROR from initialAPI.connect():", connectError);
+          logger.error({ error: connectError }, "initialAPI.connect() threw");
+          throw connectError;
+        }
       }),
       timeout({
-        first: 5_000,
+        first: 30_000,
         with: () =>
           throwError(() => {
             logger.error("Wallet connector API has failed to respond");
@@ -378,14 +416,11 @@ const connectToWallet = (
             );
           }),
       }),
-      catchError((error, apis) =>
-        error
-          ? throwError(() => {
-              logger.error("Unable to enable connector API" + error);
-              return new Error("Application is not authorized");
-            })
-          : apis,
-      ),
+      catchError((error) => {
+        console.error("[auction-ui] FULL catchError - real error object:", error);
+        logger.error({ error: String(error), stack: error?.stack }, "connectToWallet pipeline error");
+        return throwError(() => error instanceof Error ? error : new Error(String(error)));
+      }),
     ),
   );
 };

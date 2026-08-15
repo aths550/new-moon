@@ -1,5 +1,8 @@
 import React, { useState, useCallback, useEffect } from "react";
+import { type Observable } from "rxjs";
 import { useDeployedAuctionContext } from "./hooks/useDeployedAuctionContext";
+import { type AuctionDeployment } from "./contexts/BrowserDeployedAuctionManager";
+import { type DeployedAuctionAPI, type AuctionDerivedState, computeCommitment, auctionPrivateStateKey } from "../../api/src/index.js";
 import {
   ThemeProvider,
   createTheme,
@@ -41,7 +44,7 @@ const darkTheme = createTheme({
   shape: { borderRadius: 16 },
 });
 
-type WalletStatus = "disconnected" | "connecting" | "connected" | "demo";
+type WalletStatus = "disconnected" | "connecting" | "connected";
 
 interface LocalBid {
   amount: bigint;
@@ -52,22 +55,64 @@ interface LocalBid {
 const App: React.FC = () => {
   const apiProvider = useDeployedAuctionContext();
   const contractAddress = import.meta.env.VITE_CONTRACT_ADDRESS ?? "";
-  const [walletStatus, setWalletStatus] = useState<WalletStatus>("demo");
+  const [walletStatus, setWalletStatus] = useState<WalletStatus>("disconnected");
   const [walletAddress, setWalletAddress] = useState<string | undefined>(undefined);
+  const [auctionApi, setAuctionApi] = useState<DeployedAuctionAPI | null>(null);
 
   useEffect(() => {
     if (apiProvider?.walletAddress$) {
       const sub = apiProvider.walletAddress$.subscribe((address) => {
         setWalletAddress(address);
-        if (address) {
-          setStatusMessage(`Lace wallet connected! Address: ${address.slice(0, 12)}...${address.slice(-6)}`);
-          setStatusSeverity("success");
-          setWalletStatus("connected");
-        }
       });
       return () => sub.unsubscribe();
     }
   }, [apiProvider]);
+
+  const [deployment$, setDeployment$] = useState<Observable<AuctionDeployment> | null>(null);
+
+  useEffect(() => {
+    if (deployment$) {
+      const sub = deployment$.subscribe((deployment) => {
+        console.log("[auction-ui] deployment status:", deployment.status);
+        if (deployment.status === "deployed") {
+          console.log("[auction-ui] AuctionAPI resolved successfully!");
+          setAuctionApi(deployment.api);
+          setWalletStatus("connected");
+          setStatusSeverity("success");
+          setStatusMessage("Wallet connected and auction contract synced!");
+        } else if (deployment.status === "failed") {
+          console.error("[auction-ui] deployment failed:", deployment.error);
+          setAuctionApi(null);
+          setWalletStatus("disconnected");
+          setStatusMessage(`Connection failed: ${deployment.error.message}`);
+          setStatusSeverity("error");
+        }
+        // "in-progress" is silently ignored
+      });
+      return () => sub.unsubscribe();
+    }
+  }, [deployment$]);
+
+  useEffect(() => {
+    if (auctionApi) {
+      const sub = auctionApi.state$.subscribe((state: AuctionDerivedState) => {
+        // Map 0 -> Commit, 1 -> Reveal, 2 -> Ended
+        const phaseStr = state.state === 0 ? "Commit" : state.state === 1 ? "Reveal" : "Ended";
+        setAuctionPhase(phaseStr);
+        setHighestBid(state.highestBidAmount);
+        setHighestCommitment(
+          Array.from(state.highestBidCommitment)
+            .map((b: number) => b.toString(16).padStart(2, "0"))
+            .join(""),
+        );
+        setCommitmentsCount(Number(state.commitmentCount));
+        if (state.state === 2) {
+           setWinningAmount(state.winningAmount);
+        }
+      });
+      return () => sub.unsubscribe();
+    }
+  }, [auctionApi]);
   const [bidInput, setBidInput] = useState("10");
   const [auctionPhase, setAuctionPhase] = useState<
     "Commit" | "Reveal" | "Ended"
@@ -85,37 +130,12 @@ const App: React.FC = () => {
     "info" | "success" | "warning" | "error"
   >("info");
 
-  const connectWallet = useCallback(async () => {
+  const connectWallet = useCallback(() => {
     setWalletStatus("connecting");
-    try {
-      const midnight = (window as unknown as Record<string, unknown>)
-        .midnight as
-        | {
-            mnLace?: {
-              isEnabled: () => Promise<boolean>;
-              enable: () => Promise<unknown>;
-            };
-          }
-        | undefined;
-      if (midnight?.mnLace) {
-        const enabled = await midnight.mnLace.isEnabled();
-        if (!enabled) {
-          await midnight.mnLace.enable();
-        }
-        
-        // Build providers via BrowserDeployedAuctionManager
-        apiProvider.resolve(contractAddress);
-      } else {
-        setWalletStatus("demo");
-        setStatusSeverity("info");
-        setStatusMessage(
-          "Lace Wallet extension not detected. Running in Interactive Demo Mode.",
-        );
-      }
-    } catch (e) {
-      setWalletStatus("demo");
-      setStatusSeverity("info");
-      setStatusMessage("Failed to connect Lace Wallet. Running in Interactive Demo Mode.");
+    setStatusSeverity("info");
+    setStatusMessage("Looking for Midnight Lace extension...");
+    if (apiProvider) {
+      setDeployment$(apiProvider.resolve(contractAddress));
     }
   }, [contractAddress, apiProvider]);
 
@@ -126,12 +146,14 @@ const App: React.FC = () => {
   }, []);
 
   // 1. Commit Bid Action
-  const handleCommitBid = useCallback(() => {
-    if (auctionPhase !== "Commit") {
+  const handleCommitBid = useCallback(async () => {
+    if (!auctionApi || !apiProvider) {
       setStatusSeverity("error");
-      setStatusMessage("Bidding is closed! Auction is not in Commit phase.");
+      setStatusMessage("Wallet not connected or auction API not resolved!");
       return;
     }
+    // We remove the local auctionPhase check because the contract will enforce it,
+    // but it's good for UX to still check. We will rely on contract derived state later if needed.
 
     const val = parseInt(bidInput, 10);
     if (isNaN(val) || val <= 0) {
@@ -140,93 +162,106 @@ const App: React.FC = () => {
       return;
     }
 
-    const amount = BigInt(val);
-    const salt = crypto.getRandomValues(new Uint8Array(32));
-    const saltHex = Array.from(salt)
-      .map((b) => b.toString(16).padStart(2, "0"))
-      .join("");
+    try {
+      const amount = BigInt(val);
+      const salt = crypto.getRandomValues(new Uint8Array(32));
+      const saltHex = Array.from(salt)
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join("");
 
-    const fakeCommitmentBytes = crypto.getRandomValues(new Uint8Array(32));
-    const commitmentHashHex = Array.from(fakeCommitmentBytes)
-      .map((b) => b.toString(16).padStart(2, "0"))
-      .join("");
+      // 1. Compute commitment hash using pure circuit
+      const commitmentHashBytes = computeCommitment(salt, amount);
+      const commitmentHashHex = Array.from(commitmentHashBytes)
+        .map((b: number) => b.toString(16).padStart(2, "0"))
+        .join("");
 
-    const newBid: LocalBid = { amount, salt, commitmentHashHex };
-    setMyBid(newBid);
-    setCommitmentsCount((prev) => prev + 1);
+      // 2. Update private state locally
+      const psProvider = await apiProvider.getPrivateStateProvider();
+      const ps = await psProvider.get(auctionPrivateStateKey);
+      if (ps) {
+        await psProvider.set(auctionPrivateStateKey, {
+          ...ps,
+          bidAmount: amount,
+          bidSalt: salt,
+        });
+      } else {
+        throw new Error("Local private state not found");
+      }
 
-    localStorage.setItem("auction_bid_amount", amount.toString());
-    localStorage.setItem("auction_bid_salt", saltHex);
+      const newBid: LocalBid = { amount, salt, commitmentHashHex };
+      setMyBid(newBid);
 
-    setStatusSeverity("success");
-    setStatusMessage(
-      `🔒 Sealed bid of ${val} tNIGHT committed! Amount & salt stay on your local device. Only commitment hash 0x${commitmentHashHex.slice(0, 12)}... recorded on-chain. Note: Highest bid stays 0 until Reveal phase!`,
-    );
-  }, [bidInput, auctionPhase]);
+      localStorage.setItem("auction_bid_amount", amount.toString());
+      localStorage.setItem("auction_bid_salt", saltHex);
+
+      // 3. Call the real circuit
+      setStatusMessage("Submitting transaction to Lace wallet...");
+      setStatusSeverity("info");
+      await auctionApi.commitBid(commitmentHashBytes);
+
+      setStatusSeverity("success");
+      setStatusMessage(
+        `🔒 Sealed bid of ${val} tNIGHT committed! Amount & salt stay on your local device. Only commitment hash 0x${commitmentHashHex.slice(0, 12)}... recorded on-chain. Note: Highest bid stays 0 until Reveal phase!`,
+      );
+    } catch (e: any) {
+      console.error(e);
+      setStatusSeverity("error");
+      setStatusMessage(`Failed to commit bid: ${e.message}`);
+    }
+  }, [bidInput, auctionApi, apiProvider]);
 
   // 2. Advance Phase Action
-  const handleAdvanceToReveal = useCallback(() => {
-    if (auctionPhase === "Commit") {
-      setAuctionPhase("Reveal");
+  const handleAdvanceToReveal = useCallback(async () => {
+    if (!auctionApi) return;
+    try {
+      setStatusMessage("Submitting transaction to Lace wallet...");
+      setStatusSeverity("info");
+      await auctionApi.advanceToReveal();
       setStatusSeverity("warning");
       setStatusMessage(
         "🔓 Auction advanced to REVEAL phase! Bidders can now reveal their sealed bids to evaluate the leading bid on-chain.",
       );
+    } catch (e: any) {
+      console.error(e);
+      setStatusSeverity("error");
+      setStatusMessage(`Failed to advance phase: ${e.message}`);
     }
-  }, [auctionPhase]);
+  }, [auctionApi]);
 
   // 3. Reveal Bid Action
-  const handleRevealBid = useCallback(() => {
-    if (auctionPhase !== "Reveal") {
+  const handleRevealBid = useCallback(async () => {
+    if (!auctionApi) return;
+    try {
+      setStatusMessage("Submitting reveal transaction to Lace wallet...");
+      setStatusSeverity("info");
+      await auctionApi.revealBid();
+      setStatusSeverity("success");
+      setStatusMessage("👁️ Bid successfully revealed on-chain!");
+    } catch (e: any) {
+      console.error(e);
       setStatusSeverity("error");
-      setStatusMessage("Cannot reveal bid! Auction is not in Reveal phase.");
-      return;
+      setStatusMessage(`Failed to reveal bid: ${e.message}`);
     }
+  }, [auctionApi]);
 
-    if (!myBid) {
-      const storedAmount = localStorage.getItem("auction_bid_amount");
-      if (!storedAmount) {
-        setStatusSeverity("error");
-        setStatusMessage("No committed bid found on this device to reveal!");
-        return;
-      }
-    }
-
-    const currentAmount = myBid
-      ? myBid.amount
-      : BigInt(localStorage.getItem("auction_bid_amount") || "0");
-    const commitmentHex = myBid ? myBid.commitmentHashHex : "0x8f9e...";
-
-    setRevealedBidsCount((prev) => prev + 1);
-
-    // Execute ZK circuit conditional ledger logic: amount > highestBidAmount
-    if (currentAmount > highestBid) {
-      setHighestBid(currentAmount);
-      setHighestCommitment(commitmentHex.slice(0, 16));
+  const handleEndAuction = useCallback(async () => {
+    if (!auctionApi) return;
+    try {
+      setStatusMessage("Submitting close auction transaction to Lace wallet...");
+      setStatusSeverity("info");
+      await auctionApi.closeAuction();
       setStatusSeverity("success");
       setStatusMessage(
-        `🎉 ZK Circuit Evaluated: ${currentAmount} tNIGHT > ${highestBid} tNIGHT! Highest Bid updated on-chain to ${currentAmount} tNIGHT!`,
+        `🏆 Auction ENDED! Final Winner Amount is verified on-chain. All losing bids were kept completely private!`,
       );
-    } else {
-      setStatusSeverity("info");
-      setStatusMessage(
-        `🔒 ZK Circuit Evaluated: ${currentAmount} tNIGHT <= ${highestBid} tNIGHT. Zero ledger update executed — losing bid amount remains 100% private!`,
-      );
+    } catch (e: any) {
+      console.error(e);
+      setStatusSeverity("error");
+      setStatusMessage(`Failed to close auction: ${e.message}`);
     }
-  }, [auctionPhase, myBid, highestBid]);
+  }, [auctionApi]);
 
-  // 4. End Auction Action
-  const handleEndAuction = useCallback(() => {
-    setAuctionPhase("Ended");
-    setWinningAmount(highestBid);
-    setStatusSeverity("success");
-    setStatusMessage(
-      `🏆 Auction ENDED! Final Winner Amount: ${highestBid} tNIGHT. All losing bids were kept completely private!`,
-    );
-  }, [highestBid]);
-
-  const isWalletActive =
-    walletStatus === "connected" || walletStatus === "demo";
+  const isWalletActive = walletStatus === "connected";
   const phaseColor =
     auctionPhase === "Commit"
       ? "#7c4dff"
@@ -264,12 +299,12 @@ const App: React.FC = () => {
               Sealed-Bid Auction — Midnight Network
             </Typography>
             <Chip
-              label={walletStatus === "demo" ? "DEMO MODE" : import.meta.env.VITE_NETWORK_ID?.toUpperCase() ?? "PREVIEW"}
+              label={import.meta.env.VITE_NETWORK_ID?.toUpperCase() ?? "PREVIEW"}
               size="small"
               sx={{
                 mr: 2,
-                bgcolor: walletStatus === "demo" ? "#ff910033" : "#7c4dff33",
-                color: walletStatus === "demo" ? "#ff9100" : "#7c4dff",
+                bgcolor: "#7c4dff33",
+                color: "#7c4dff",
                 fontWeight: 600,
               }}
             />
@@ -283,9 +318,7 @@ const App: React.FC = () => {
               {walletStatus === "connecting"
                 ? "Connecting..."
                 : isWalletActive
-                  ? walletStatus === "demo"
-                    ? "Demo Wallet Active"
-                    : "Disconnect Lace"
+                  ? "Disconnect Lace"
                   : "Connect Lace"}
             </Button>
           </Toolbar>
@@ -302,23 +335,6 @@ const App: React.FC = () => {
               onClose={() => setStatusMessage("")}
             >
               {statusMessage}
-            </Alert>
-          )}
-
-          {/* Lace Extension Notice */}
-          {walletStatus === "demo" && (
-            <Alert severity="info" sx={{ mb: 3, borderRadius: 3 }}>
-              ℹ️ Running in <strong>Interactive Demo Mode</strong>. To connect a
-              live browser wallet, install the official{" "}
-              <Link
-                href="https://chromewebstore.google.com/detail/lace/gafhhkghbfjjkeiendhlofajokmphljg"
-                target="_blank"
-                rel="noopener"
-                sx={{ color: "#00e5ff", fontWeight: 700 }}
-              >
-                Lace Wallet Extension
-              </Link>
-              .
             </Alert>
           )}
 
