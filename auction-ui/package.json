@@ -8,7 +8,7 @@
   "scripts": {
     "build": "rm -rf ./dist && tsc && vite build --mode preprod && mkdir -p ./dist/keys ./dist/zkir && (cp -Rf ../contract/src/managed/auction/keys/* ./dist/keys 2>/dev/null || true) && (cp -Rf ../contract/src/managed/auction/zkir/* ./dist/zkir 2>/dev/null || true)",
     "ci": "npm run typecheck && npm run lint",
-    "dev": "vite",
+    "dev": "vite --mode preview",
     "lint": "eslint ./src",
     "start": "http-server --port 0 ./dist",
     "typecheck": "tsc -p tsconfig.json --noEmit"
