@@ -87,24 +87,29 @@ export interface DeployedAuctionAPIProvider {
   readonly getPrivateStateProvider: () => Promise<
     PrivateStateProvider<string, AuctionPrivateState>
   >;
+  readonly walletAddress$: Observable<string | undefined>;
 }
 
 export class BrowserDeployedAuctionManager implements DeployedAuctionAPIProvider {
   readonly #auctionDeploymentsSubject: BehaviorSubject<
     Array<BehaviorSubject<AuctionDeployment>>
   >;
+  readonly #walletAddressSubject: BehaviorSubject<string | undefined>;
   #initializedProviders: Promise<AuctionProviders> | undefined;
 
   constructor(private readonly logger: Logger) {
     this.#auctionDeploymentsSubject = new BehaviorSubject<
       Array<BehaviorSubject<AuctionDeployment>>
     >([]);
+    this.#walletAddressSubject = new BehaviorSubject<string | undefined>(undefined);
     this.auctionDeployments$ = this.#auctionDeploymentsSubject;
+    this.walletAddress$ = this.#walletAddressSubject;
   }
 
   readonly auctionDeployments$: Observable<
     Array<Observable<AuctionDeployment>>
   >;
+  readonly walletAddress$: Observable<string | undefined>;
 
   async getPrivateStateProvider(): Promise<
     PrivateStateProvider<string, AuctionPrivateState>
@@ -143,7 +148,10 @@ export class BrowserDeployedAuctionManager implements DeployedAuctionAPIProvider
   private getProviders(): Promise<AuctionProviders> {
     return (
       this.#initializedProviders ??
-      (this.#initializedProviders = initializeProviders(this.logger))
+      (this.#initializedProviders = initializeProviders(
+        this.logger,
+        this.#walletAddressSubject
+      ))
     );
   }
 
@@ -224,6 +232,7 @@ export class BrowserDeployedAuctionManager implements DeployedAuctionAPIProvider
 
 const initializeProviders = async (
   logger: Logger,
+  walletAddressSubject: BehaviorSubject<string | undefined>
 ): Promise<AuctionProviders> => {
   const networkId = import.meta.env.VITE_NETWORK_ID as NetworkId;
   const connectedAPI = await connectToWallet(logger, networkId);
@@ -259,6 +268,7 @@ const initializeProviders = async (
     );
 
   const shieldedAddresses = await connectedAPI.getShieldedAddresses();
+  walletAddressSubject.next(shieldedAddresses.shieldedCoinPublicKey);
   return {
     privateStateProvider: localStoragePrivateStateProvider,
     zkConfigProvider: keyMaterialProvider,

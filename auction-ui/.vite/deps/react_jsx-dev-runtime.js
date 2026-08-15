@@ -1,5 +1,5 @@
-import { t as __commonJSMin } from "./rolldown-runtime-DC62tzP2.js";
-import { t as require_react } from "./react.js";
+import { t as __commonJSMin } from "./rolldown-runtime-CoDluQUr.js";
+import { t as require_react } from "./react-CG4JYB8F.js";
 //#region ../node_modules/react/cjs/react-jsx-dev-runtime.development.js
 /**
 * @license React

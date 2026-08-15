@@ -143,6 +143,7 @@ export class AuctionAPI implements DeployedAuctionAPI {
     itemDescription: string = 'Sealed-Bid Auction Item',
     merkleRoot: Uint8Array = new Uint8Array(32),
     logger?: Logger,
+    initialPrivateState: AuctionPrivateState = createAuctionPrivateState(utils.randomBytes(32)),
   ): Promise<AuctionAPI> {
     logger?.info('deployContract');
     /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -151,7 +152,7 @@ export class AuctionAPI implements DeployedAuctionAPI {
       {
         compiledContract: CompiledAuctionContractContract,
         privateStateId: auctionPrivateStateKey,
-        initialPrivateState: createAuctionPrivateState(utils.randomBytes(32)),
+        initialPrivateState,
         args: [itemDescription, merkleRoot],
       } as any,
     )) as unknown as DeployedAuctionContract;

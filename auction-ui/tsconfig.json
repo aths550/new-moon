@@ -15,7 +15,8 @@
     "lib": ["DOM", "DOM.Iterable", "ESNext"],
     "esModuleInterop": false,
     "noEmit": true,
-    "jsx": "react-jsx"
+    "jsx": "react-jsx",
+    "types": ["vite/client"]
   },
   "include": ["src", "eslint.config.mjs"]
 }

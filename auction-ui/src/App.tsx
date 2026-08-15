@@ -1,4 +1,5 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
+import { useDeployedAuctionContext } from "./hooks/useDeployedAuctionContext";
 import {
   ThemeProvider,
   createTheme,
@@ -49,7 +50,24 @@ interface LocalBid {
 }
 
 const App: React.FC = () => {
+  const apiProvider = useDeployedAuctionContext();
+  const contractAddress = import.meta.env.VITE_CONTRACT_ADDRESS ?? "";
   const [walletStatus, setWalletStatus] = useState<WalletStatus>("demo");
+  const [walletAddress, setWalletAddress] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    if (apiProvider?.walletAddress$) {
+      const sub = apiProvider.walletAddress$.subscribe((address) => {
+        setWalletAddress(address);
+        if (address) {
+          setStatusMessage(`Lace wallet connected! Address: ${address.slice(0, 12)}...${address.slice(-6)}`);
+          setStatusSeverity("success");
+          setWalletStatus("connected");
+        }
+      });
+      return () => sub.unsubscribe();
+    }
+  }, [apiProvider]);
   const [bidInput, setBidInput] = useState("10");
   const [auctionPhase, setAuctionPhase] = useState<
     "Commit" | "Reveal" | "Ended"
@@ -81,18 +99,12 @@ const App: React.FC = () => {
         | undefined;
       if (midnight?.mnLace) {
         const enabled = await midnight.mnLace.isEnabled();
-        if (enabled) {
-          setWalletStatus("connected");
-          setStatusSeverity("success");
-          setStatusMessage(
-            "Lace wallet connected on Midnight Preprod network!",
-          );
-        } else {
+        if (!enabled) {
           await midnight.mnLace.enable();
-          setWalletStatus("connected");
-          setStatusSeverity("success");
-          setStatusMessage("Lace wallet connected!");
         }
+        
+        // Build providers via BrowserDeployedAuctionManager
+        apiProvider.resolve(contractAddress);
       } else {
         setWalletStatus("demo");
         setStatusSeverity("info");
@@ -100,12 +112,12 @@ const App: React.FC = () => {
           "Lace Wallet extension not detected. Running in Interactive Demo Mode.",
         );
       }
-    } catch {
+    } catch (e) {
       setWalletStatus("demo");
       setStatusSeverity("info");
-      setStatusMessage("Running in Interactive Demo Mode.");
+      setStatusMessage("Failed to connect Lace Wallet. Running in Interactive Demo Mode.");
     }
-  }, []);
+  }, [contractAddress, apiProvider]);
 
   const disconnectWallet = useCallback(() => {
     setWalletStatus("disconnected");
@@ -252,7 +264,7 @@ const App: React.FC = () => {
               Sealed-Bid Auction — Midnight Network
             </Typography>
             <Chip
-              label={walletStatus === "demo" ? "DEMO MODE" : "PREPROD"}
+              label={walletStatus === "demo" ? "DEMO MODE" : import.meta.env.VITE_NETWORK_ID?.toUpperCase() ?? "PREVIEW"}
               size="small"
               sx={{
                 mr: 2,

@@ -2,14 +2,12 @@ import "./globals.js";
 
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { ThemeProvider } from "@mui/material";
 import {
   setNetworkId,
   NetworkId,
 } from "@midnight-ntwrk/midnight-js-network-id";
 import App from "./App.js";
 import CssBaseline from "@mui/material/CssBaseline";
-import { theme } from "./config/theme.js";
 import "@midnight-ntwrk/dapp-connector-api";
 import * as pino from "pino";
 import { DeployedAuctionProvider } from "./contexts/DeployedAuctionContext.js";
@@ -32,10 +30,8 @@ logger.trace(`networkId = ${networkId}`);
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
     <CssBaseline />
-    <ThemeProvider theme={theme}>
-      <DeployedAuctionProvider logger={logger}>
-        <App />
-      </DeployedAuctionProvider>
-    </ThemeProvider>
+    <DeployedAuctionProvider logger={logger}>
+      <App />
+    </DeployedAuctionProvider>
   </React.StrictMode>,
 );
