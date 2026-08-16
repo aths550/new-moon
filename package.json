@@ -6,7 +6,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "postinstall": "patch-package",
+    "postinstall": "npx patch-package",
     "compact": "npm run compact --workspace=@midnight-ntwrk/bboard-contract",
     "build": "npm run compact && npm run build --workspace=@midnight-ntwrk/bboard-contract && npm run build --workspace=@midnight-ntwrk/bboard-api && npm run build --workspaces",
     "build:contract": "npm run build --workspace=@midnight-ntwrk/bboard-contract",
