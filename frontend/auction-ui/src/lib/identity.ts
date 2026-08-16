@@ -1,11 +1,11 @@
 import {
   buildMerkleTree,
   getMerkleProof,
-} from "../../../contract/src/auction-merkle.js";
+} from "../../../../contract/src/auction-merkle.js";
 import {
   AuctionPrivateState,
   createAuctionPrivateState,
-} from "../../../contract/src/index.js";
+} from "../../../../contract/src/index.js";
 
 export interface BidderIdentity {
   secretKey: Uint8Array;

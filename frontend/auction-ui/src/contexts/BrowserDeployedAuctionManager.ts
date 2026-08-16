@@ -3,7 +3,7 @@ import {
   type AuctionCircuitKeys,
   type AuctionProviders,
   type DeployedAuctionAPI,
-} from "../../../api/src/index.js";
+} from "../../../../api/src/index.js";
 import {
   type ContractAddress,
   fromHex,
@@ -52,11 +52,11 @@ import {
   buildIdentityPrivateState,
   saveBidderIdentity,
 } from "../lib/identity.js";
-import { buildMerkleTree } from "../../../contract/src/auction-merkle.js";
+import { buildMerkleTree } from "../../../../contract/src/auction-merkle.js";
 import {
   createAuctionPrivateState,
   AuctionPrivateState,
-} from "../../../contract/src/index.js";
+} from "../../../../contract/src/index.js";
 
 export interface InProgressAuctionDeployment {
   readonly status: "in-progress";

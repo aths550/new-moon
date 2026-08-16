@@ -2,7 +2,7 @@ import React, { useState, useCallback, useEffect } from "react";
 import { type Observable } from "rxjs";
 import { useDeployedAuctionContext } from "./hooks/useDeployedAuctionContext";
 import { type AuctionDeployment } from "./contexts/BrowserDeployedAuctionManager";
-import { type DeployedAuctionAPI, type AuctionDerivedState, computeCommitment, auctionPrivateStateKey } from "../../api/src/index.js";
+import { type DeployedAuctionAPI, type AuctionDerivedState, computeCommitment, auctionPrivateStateKey } from "../../../api/src/index.js";
 import { getBidderIdentity } from "./lib/identity.js";
 import {
   ThemeProvider,
@@ -116,13 +116,13 @@ const App: React.FC = () => {
         setHighestBid(state.highestBidAmount);
         setHighestCommitment(
           Array.from(state.highestBidCommitment)
-            .map((b: number) => b.toString(16).padStart(2, "0"))
+            .map((b: any) => b.toString(16).padStart(2, "0"))
             .join(""),
         );
         setCommitmentsCount(Number(state.commitmentCount));
         setOnChainAllowlistRoot(
           Array.from(state.allowlistMerkleRoot)
-            .map((b: number) => b.toString(16).padStart(2, "0"))
+            .map((b: any) => b.toString(16).padStart(2, "0"))
             .join(""),
         );
         if (state.state === 2) {
@@ -207,7 +207,7 @@ const App: React.FC = () => {
       // 1. Compute commitment hash using pure circuit
       const commitmentHashBytes = computeCommitment(salt, amount);
       const commitmentHashHex = Array.from(commitmentHashBytes)
-        .map((b: number) => b.toString(16).padStart(2, "0"))
+        .map((b: any) => b.toString(16).padStart(2, "0"))
         .join("");
 
       // 2. Update private state locally
