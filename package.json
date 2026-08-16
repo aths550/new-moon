@@ -24,9 +24,9 @@
       "contract",
       "api",
       "bboard-cli",
-      "bboard-ui",
+      "frontend/bboard-ui",
       "auction-cli",
-      "auction-ui"
+      "frontend/auction-ui"
     ]
   },
   "dependencies": {

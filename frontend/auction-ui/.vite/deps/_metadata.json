@@ -1,0 +1,260 @@
+{
+  "hash": "e41b3bb2",
+  "configHash": "41f39f5f",
+  "lockfileHash": "e47bcdf8",
+  "browserHash": "ac3048b6",
+  "optimized": {
+    "@midnight-ntwrk/compact-js": {
+      "src": "../../../node_modules/@midnight-ntwrk/compact-js/dist/esm/index.js",
+      "file": "@midnight-ntwrk_compact-js.js",
+      "fileHash": "95a52b2a",
+      "needsInterop": false
+    },
+    "@midnight-ntwrk/compact-runtime": {
+      "src": "../../../node_modules/@midnight-ntwrk/compact-runtime/dist/index.js",
+      "file": "@midnight-ntwrk_compact-runtime.js",
+      "fileHash": "f1535256",
+      "needsInterop": false
+    },
+    "@midnight-ntwrk/dapp-connector-api": {
+      "src": "../../../node_modules/@midnight-ntwrk/dapp-connector-api/dist/index.mjs",
+      "file": "@midnight-ntwrk_dapp-connector-api.js",
+      "fileHash": "619fc843",
+      "needsInterop": false
+    },
+    "@midnight-ntwrk/midnight-js-contracts": {
+      "src": "../../../node_modules/@midnight-ntwrk/midnight-js-contracts/dist/index.mjs",
+      "file": "@midnight-ntwrk_midnight-js-contracts.js",
+      "fileHash": "56078a82",
+      "needsInterop": false
+    },
+    "@midnight-ntwrk/midnight-js-fetch-zk-config-provider": {
+      "src": "../../../node_modules/@midnight-ntwrk/midnight-js-fetch-zk-config-provider/dist/index.mjs",
+      "file": "@midnight-ntwrk_midnight-js-fetch-zk-config-provider.js",
+      "fileHash": "168f4254",
+      "needsInterop": false
+    },
+    "@midnight-ntwrk/midnight-js-http-client-proof-provider": {
+      "src": "../../../node_modules/@midnight-ntwrk/midnight-js-http-client-proof-provider/dist/index.mjs",
+      "file": "@midnight-ntwrk_midnight-js-http-client-proof-provider.js",
+      "fileHash": "53368911",
+      "needsInterop": false
+    },
+    "@midnight-ntwrk/midnight-js-indexer-public-data-provider": {
+      "src": "../../../node_modules/@midnight-ntwrk/midnight-js-indexer-public-data-provider/dist/index.mjs",
+      "file": "@midnight-ntwrk_midnight-js-indexer-public-data-provider.js",
+      "fileHash": "8c2484c6",
+      "needsInterop": false
+    },
+    "@midnight-ntwrk/midnight-js-network-id": {
+      "src": "../../../node_modules/@midnight-ntwrk/midnight-js-network-id/dist/index.mjs",
+      "file": "@midnight-ntwrk_midnight-js-network-id.js",
+      "fileHash": "749643dc",
+      "needsInterop": false
+    },
+    "@midnight-ntwrk/midnight-js-protocol/compact-runtime": {
+      "src": "../../../node_modules/@midnight-ntwrk/midnight-js-protocol/dist/compact-runtime.mjs",
+      "file": "@midnight-ntwrk_midnight-js-protocol_compact-runtime.js",
+      "fileHash": "48d90c74",
+      "needsInterop": false
+    },
+    "@midnight-ntwrk/midnight-js-protocol/ledger": {
+      "src": "../../../node_modules/@midnight-ntwrk/midnight-js-protocol/dist/ledger.mjs",
+      "file": "@midnight-ntwrk_midnight-js-protocol_ledger.js",
+      "fileHash": "c0c33ce4",
+      "needsInterop": false
+    },
+    "@midnight-ntwrk/midnight-js-utils": {
+      "src": "../../../node_modules/@midnight-ntwrk/midnight-js-utils/dist/index.mjs",
+      "file": "@midnight-ntwrk_midnight-js-utils.js",
+      "fileHash": "02f65a36",
+      "needsInterop": false
+    },
+    "@mui/icons-material/CheckCircle": {
+      "src": "../../../node_modules/@mui/icons-material/CheckCircle.mjs",
+      "file": "@mui_icons-material_CheckCircle.js",
+      "fileHash": "86436aae",
+      "needsInterop": false
+    },
+    "@mui/icons-material/Gavel": {
+      "src": "../../../node_modules/@mui/icons-material/Gavel.mjs",
+      "file": "@mui_icons-material_Gavel.js",
+      "fileHash": "b3670f0a",
+      "needsInterop": false
+    },
+    "@mui/icons-material/Key": {
+      "src": "../../../node_modules/@mui/icons-material/Key.mjs",
+      "file": "@mui_icons-material_Key.js",
+      "fileHash": "d430e617",
+      "needsInterop": false
+    },
+    "@mui/icons-material/Lock": {
+      "src": "../../../node_modules/@mui/icons-material/Lock.mjs",
+      "file": "@mui_icons-material_Lock.js",
+      "fileHash": "9ec99c17",
+      "needsInterop": false
+    },
+    "@mui/icons-material/Shield": {
+      "src": "../../../node_modules/@mui/icons-material/Shield.mjs",
+      "file": "@mui_icons-material_Shield.js",
+      "fileHash": "fda94106",
+      "needsInterop": false
+    },
+    "@mui/icons-material/Visibility": {
+      "src": "../../../node_modules/@mui/icons-material/Visibility.mjs",
+      "file": "@mui_icons-material_Visibility.js",
+      "fileHash": "4f81cd2b",
+      "needsInterop": false
+    },
+    "@mui/material": {
+      "src": "../../../node_modules/@mui/material/index.mjs",
+      "file": "@mui_material.js",
+      "fileHash": "115bfc89",
+      "needsInterop": false
+    },
+    "@mui/material/CssBaseline": {
+      "src": "../../../node_modules/@mui/material/CssBaseline/index.mjs",
+      "file": "@mui_material_CssBaseline.js",
+      "fileHash": "e92f21a5",
+      "needsInterop": false
+    },
+    "buffer": {
+      "src": "../../../node_modules/buffer/index.js",
+      "file": "buffer.js",
+      "fileHash": "e5e05c73",
+      "needsInterop": true
+    },
+    "fp-ts/function": {
+      "src": "../../../node_modules/fp-ts/es6/function.js",
+      "file": "fp-ts_function.js",
+      "fileHash": "82ced0d2",
+      "needsInterop": false
+    },
+    "pino": {
+      "src": "../../../node_modules/pino/browser.js",
+      "file": "pino.js",
+      "fileHash": "644551a4",
+      "needsInterop": true
+    },
+    "react-dom": {
+      "src": "../../../node_modules/react-dom/index.js",
+      "file": "react-dom.js",
+      "fileHash": "9dea6aa2",
+      "needsInterop": true
+    },
+    "react-dom/client": {
+      "src": "../../../node_modules/react-dom/client.js",
+      "file": "react-dom_client.js",
+      "fileHash": "b6ab9424",
+      "needsInterop": true
+    },
+    "react": {
+      "src": "../../../node_modules/react/index.js",
+      "file": "react.js",
+      "fileHash": "010a808f",
+      "needsInterop": true
+    },
+    "react/jsx-dev-runtime": {
+      "src": "../../../node_modules/react/jsx-dev-runtime.js",
+      "file": "react_jsx-dev-runtime.js",
+      "fileHash": "aa546e2f",
+      "needsInterop": true
+    },
+    "react/jsx-runtime": {
+      "src": "../../../node_modules/react/jsx-runtime.js",
+      "file": "react_jsx-runtime.js",
+      "fileHash": "f3b0385e",
+      "needsInterop": true
+    },
+    "rxjs": {
+      "src": "../../../node_modules/rxjs/dist/esm5/index.js",
+      "file": "rxjs.js",
+      "fileHash": "aea99c8f",
+      "needsInterop": false
+    },
+    "semver": {
+      "src": "../../../node_modules/semver/index.js",
+      "file": "semver.js",
+      "fileHash": "1add2a96",
+      "needsInterop": true
+    }
+  },
+  "chunks": {
+    "ContractExecutable-DpHmyP5e": {
+      "file": "ContractExecutable-DpHmyP5e.js",
+      "isDynamicEntry": false
+    },
+    "CssBaseline-CCAUc5Sm": {
+      "file": "CssBaseline-CCAUc5Sm.js",
+      "isDynamicEntry": false
+    },
+    "DefaultPropsProvider-C3xmMdYG": {
+      "file": "DefaultPropsProvider-C3xmMdYG.js",
+      "isDynamicEntry": false
+    },
+    "ZKConfiguration-ODiHLmwj": {
+      "file": "ZKConfiguration-ODiHLmwj.js",
+      "isDynamicEntry": false
+    },
+    "browser-ponyfill-CY0ElSBd": {
+      "file": "browser-ponyfill-CY0ElSBd.js",
+      "isDynamicEntry": false
+    },
+    "buffer-fJKDzc2O": {
+      "file": "buffer-fJKDzc2O.js",
+      "isDynamicEntry": false
+    },
+    "compact-runtime-CkZwn_U6": {
+      "file": "compact-runtime-CkZwn_U6.js",
+      "isDynamicEntry": false
+    },
+    "createSvgIcon-BSGh1JzR": {
+      "file": "createSvgIcon-BSGh1JzR.js",
+      "isDynamicEntry": false
+    },
+    "dist-5EG9wBQL": {
+      "file": "dist-5EG9wBQL.js",
+      "isDynamicEntry": false
+    },
+    "dist-CZ9hkJt1": {
+      "file": "dist-CZ9hkJt1.js",
+      "isDynamicEntry": false
+    },
+    "dist-HqXgcb0A": {
+      "file": "dist-HqXgcb0A.js",
+      "isDynamicEntry": false
+    },
+    "dist-lrxkyrfs": {
+      "file": "dist-lrxkyrfs.js",
+      "isDynamicEntry": false
+    },
+    "esm5-CnDZMfhu": {
+      "file": "esm5-CnDZMfhu.js",
+      "isDynamicEntry": false
+    },
+    "jsx-runtime-Q7cvWsLl": {
+      "file": "jsx-runtime-Q7cvWsLl.js",
+      "isDynamicEntry": false
+    },
+    "ledger-DmAf9gp4": {
+      "file": "ledger-DmAf9gp4.js",
+      "isDynamicEntry": false
+    },
+    "midnight_ledger_wasm-Dv3N6P-x": {
+      "file": "midnight_ledger_wasm-Dv3N6P-x.js",
+      "isDynamicEntry": false
+    },
+    "react-CG4JYB8F": {
+      "file": "react-CG4JYB8F.js",
+      "isDynamicEntry": false
+    },
+    "react-dom-BAUFP_Nq": {
+      "file": "react-dom-BAUFP_Nq.js",
+      "isDynamicEntry": false
+    },
+    "rolldown-runtime-CoDluQUr": {
+      "file": "rolldown-runtime-CoDluQUr.js",
+      "isDynamicEntry": false
+    }
+  }
+}
