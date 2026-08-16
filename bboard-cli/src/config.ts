@@ -54,56 +54,6 @@ export class PreviewRemoteConfig implements Config {
   generateDust = true;
 }
 
-export class PreviewRemoteConfig implements Config {
-  getEnvironment(logger: Logger): TestEnvironment {
-    setNetworkId('preview');
-    return new PreviewTestEnvironment(logger);
-  }
-  privateStateStoreName = 'bboard-private-state';
-  logDir = path.resolve(currentDir, '..', 'logs', 'preview-remote', `${new Date().toISOString()}.log`);
-  zkConfigPath = path.resolve(currentDir, '..', '..', 'contract', 'src', 'managed', 'bboard');
-  generateDust = true;
-}
-
-export class PreviewTestEnvironment extends RemoteTestEnvironment {
-  constructor(logger: Logger) {
-    super(logger);
-  }
-
-  override healthCheck = async (): Promise<void> => {
-    this.logger.info('Performing env health check...');
-    const proofServerUrl = this.getProofServerUrl();
-    const res = await fetch(`${proofServerUrl}/health`);
-    this.logger.info(`Connected to proof server ${proofServerUrl}: ${res.statusText}`);
-  };
-
-  override start = async (): Promise<EnvironmentConfiguration> => {
-    this.logger.info(`Starting test environment...`);
-    const envConfig = this.getEnvironmentConfiguration();
-    (this as unknown as { environmentConfiguration: EnvironmentConfiguration }).environmentConfiguration = envConfig;
-    this.logger.info(`Test environment configuration: ${JSON.stringify(envConfig)}`);
-    await this.healthCheck();
-    return envConfig;
-  };
-
-  private getProofServerUrl(): string {
-    return process.env.PROOF_SERVER_URL ?? 'http://localhost:6300';
-  }
-
-  getEnvironmentConfiguration(): EnvironmentConfiguration {
-    return {
-      walletNetworkId: 'preview',
-      networkId: 'preview',
-      indexer: 'https://indexer.preview.midnight.network/api/v4/graphql',
-      indexerWS: 'wss://indexer.preview.midnight.network/api/v4/graphql/ws',
-      node: 'https://rpc.preview.midnight.network',
-      nodeWS: 'wss://rpc.preview.midnight.network',
-      faucet: undefined,
-      proofServer: this.getProofServerUrl(),
-    };
-  }
-}
-
 export class PreviewTestEnvironment extends RemoteTestEnvironment {
   constructor(logger: Logger) {
     super(logger);
