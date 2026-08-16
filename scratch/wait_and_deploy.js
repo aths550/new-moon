@@ -45,21 +45,21 @@ import { createLogger } from '../auction-cli/dist/auction-cli/src/logger-utils.j
 import { AuctionAPI } from '../api/dist/api/src/index.js';
 
 async function main() {
-  setNetworkId('preprod');
+  setNetworkId('preview');
   const logger = pino({ level: 'info' });
   const seed = 'f780f810991ad89f4b92f2b021d2b2c87d2c2e18594e4a5551ef66fc57f80aaa';
 
   const envConfig = {
-    walletNetworkId: 'preprod',
-    networkId: 'preprod',
-    indexer: 'https://indexer.preprod.midnight.network/api/v4/graphql',
-    indexerWS: 'wss://indexer.preprod.midnight.network/api/v4/graphql/ws',
-    node: 'https://rpc.preprod.midnight.network',
-    nodeWS: 'wss://rpc.preprod.midnight.network',
+    walletNetworkId: 'preview',
+    networkId: 'preview',
+    indexer: 'https://indexer.preview.midnight.network/api/v4/graphql',
+    indexerWS: 'wss://indexer.preview.midnight.network/api/v4/graphql/ws',
+    node: 'https://rpc.preview.midnight.network',
+    nodeWS: 'wss://rpc.preview.midnight.network',
     proofServer: 'http://localhost:6300',
   };
 
-  console.log('Connecting to Preprod network...');
+  console.log('Connecting to Preview network...');
   const walletProvider = await MidnightWalletProvider.build(logger, envConfig, seed);
   await walletProvider.start();
 
@@ -104,7 +104,7 @@ async function main() {
     midnightProvider: walletProvider.midnightProvider,
   };
 
-  console.log('Deploying Sealed-Bid Auction contract on Preprod network...');
+  console.log('Deploying Sealed-Bid Auction contract on Preview network...');
   const itemDescription = 'Rare Digital Art Piece #001';
   const deployedContract = await AuctionAPI.deploy(providers, itemDescription, customLogger);
 

@@ -16,7 +16,7 @@ async function main() {
     }
   `;
 
-  const res = await fetch('https://indexer.preprod.midnight.network/api/v4/graphql', {
+  const res = await fetch('https://indexer.preview.midnight.network/api/v4/graphql', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ query }),

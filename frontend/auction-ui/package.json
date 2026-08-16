@@ -7,7 +7,7 @@
   "type": "module",
   "scripts": {
     "build:vercel": "cd ../../ && npm run build:vercel",
-    "build": "rm -rf ./dist && tsc && vite build --mode preprod && mkdir -p ./dist/keys ./dist/zkir && (cp -Rf ../../contract/src/managed/auction/keys/* ./dist/keys 2>/dev/null || true) && (cp -Rf ../../contract/src/managed/auction/zkir/* ./dist/zkir 2>/dev/null || true)",
+    "build": "rm -rf ./dist && tsc && vite build --mode preview && mkdir -p ./dist/keys ./dist/zkir && (cp -Rf ../../contract/src/managed/auction/keys/* ./dist/keys 2>/dev/null || true) && (cp -Rf ../../contract/src/managed/auction/zkir/* ./dist/zkir 2>/dev/null || true)",
     "ci": "npm run typecheck && npm run lint",
     "dev": "vite --mode preview",
     "lint": "eslint ./src",

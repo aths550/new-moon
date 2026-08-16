@@ -23,7 +23,7 @@ export const Header: React.FC = () => {
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const [walletName, setWalletName] = useState<string>('');
 
-  const networkId = (import.meta.env.VITE_NETWORK_ID as string) || 'preprod';
+  const networkId = (import.meta.env.VITE_NETWORK_ID as string) || 'preview';
 
   const checkConnection = async () => {
     if (typeof window !== 'undefined' && window.midnight?.mnLace) {

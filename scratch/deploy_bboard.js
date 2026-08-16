@@ -33,22 +33,22 @@ import { httpClientProofProvider } from '@midnight-ntwrk/midnight-js-http-client
 import { levelPrivateStateProvider } from '@midnight-ntwrk/midnight-js-level-private-state-provider';
 
 async function main() {
-  setNetworkId('preprod');
+  setNetworkId('preview');
 
   const logger = pino({ level: 'info' });
   const seed = 'f780f810991ad89f4b92f2b021d2b2c87d2c2e18594e4a5551ef66fc57f80aaa';
 
   const envConfig = {
-    walletNetworkId: 'preprod',
-    networkId: 'preprod',
-    indexer: 'https://indexer.preprod.midnight.network/api/v4/graphql',
-    indexerWS: 'wss://indexer.preprod.midnight.network/api/v4/graphql/ws',
-    node: 'https://rpc.preprod.midnight.network',
-    nodeWS: 'wss://rpc.preprod.midnight.network',
+    walletNetworkId: 'preview',
+    networkId: 'preview',
+    indexer: 'https://indexer.preview.midnight.network/api/v4/graphql',
+    indexerWS: 'wss://indexer.preview.midnight.network/api/v4/graphql/ws',
+    node: 'https://rpc.preview.midnight.network',
+    nodeWS: 'wss://rpc.preview.midnight.network',
     proofServer: 'http://localhost:6300',
   };
 
-  console.log('Building Preprod wallet provider...');
+  console.log('Building Preview wallet provider...');
   const walletProvider = await MidnightWalletProvider.build(logger, envConfig, seed);
   await walletProvider.start();
 
@@ -57,9 +57,9 @@ async function main() {
 
   const providers = {
     privateStateProvider: levelPrivateStateProvider({
-      privateStateStoreName: 'preprod-deploy-store',
-      signingKeyStoreName: 'preprod-deploy-signing-keys',
-      privateStoragePasswordProvider: () => 'Preprod-Test-2026!',
+      privateStateStoreName: 'preview-deploy-store',
+      signingKeyStoreName: 'preview-deploy-signing-keys',
+      privateStoragePasswordProvider: () => 'Preview-Test-2026!',
       accountId: seed,
     }),
     publicDataProvider: indexerPublicDataProvider(envConfig.indexer, envConfig.indexerWS),
@@ -69,7 +69,7 @@ async function main() {
     midnightProvider: walletProvider,
   };
 
-  console.log('Deploying Bulletin Board Contract on Preprod Network...');
+  console.log('Deploying Bulletin Board Contract on Preview Network...');
   const api = await BBoardAPI.deploy(providers, logger);
   console.log('====================================================');
   console.log(`SUCCESS! PREPROD DEPLOYED CONTRACT ADDRESS: ${api.deployedContractAddress}`);

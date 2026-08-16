@@ -54,13 +54,13 @@ export class PreviewRemoteConfig implements Config {
   generateDust = true;
 }
 
-export class PreprodRemoteConfig implements Config {
+export class PreviewRemoteConfig implements Config {
   getEnvironment(logger: Logger): TestEnvironment {
-    setNetworkId('preprod');
-    return new PreprodTestEnvironment(logger);
+    setNetworkId('preview');
+    return new PreviewTestEnvironment(logger);
   }
   privateStateStoreName = 'bboard-private-state';
-  logDir = path.resolve(currentDir, '..', 'logs', 'preprod-remote', `${new Date().toISOString()}.log`);
+  logDir = path.resolve(currentDir, '..', 'logs', 'preview-remote', `${new Date().toISOString()}.log`);
   zkConfigPath = path.resolve(currentDir, '..', '..', 'contract', 'src', 'managed', 'bboard');
   generateDust = true;
 }
@@ -104,7 +104,7 @@ export class PreviewTestEnvironment extends RemoteTestEnvironment {
   }
 }
 
-export class PreprodTestEnvironment extends RemoteTestEnvironment {
+export class PreviewTestEnvironment extends RemoteTestEnvironment {
   constructor(logger: Logger) {
     super(logger);
   }
@@ -131,12 +131,12 @@ export class PreprodTestEnvironment extends RemoteTestEnvironment {
 
   getEnvironmentConfiguration(): EnvironmentConfiguration {
     return {
-      walletNetworkId: 'preprod',
-      networkId: 'preprod',
-      indexer: 'https://indexer.preprod.midnight.network/api/v4/graphql',
-      indexerWS: 'wss://indexer.preprod.midnight.network/api/v4/graphql/ws',
-      node: 'https://rpc.preprod.midnight.network',
-      nodeWS: 'wss://rpc.preprod.midnight.network',
+      walletNetworkId: 'preview',
+      networkId: 'preview',
+      indexer: 'https://indexer.preview.midnight.network/api/v4/graphql',
+      indexerWS: 'wss://indexer.preview.midnight.network/api/v4/graphql/ws',
+      node: 'https://rpc.preview.midnight.network',
+      nodeWS: 'wss://rpc.preview.midnight.network',
       faucet: undefined,
       proofServer: this.getProofServerUrl(),
     };

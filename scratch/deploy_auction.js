@@ -30,22 +30,22 @@ import { httpClientProofProvider } from '@midnight-ntwrk/midnight-js-http-client
 import { levelPrivateStateProvider } from '@midnight-ntwrk/midnight-js-level-private-state-provider';
 
 async function main() {
-  setNetworkId('preprod');
+  setNetworkId('preview');
 
   const logger = pino({ level: 'info' });
   const seed = 'f780f810991ad89f4b92f2b021d2b2c87d2c2e18594e4a5551ef66fc57f80aaa';
 
   const envConfig = {
-    walletNetworkId: 'preprod',
-    networkId: 'preprod',
-    indexer: 'https://indexer.preprod.midnight.network/api/v4/graphql',
-    indexerWS: 'wss://indexer.preprod.midnight.network/api/v4/graphql/ws',
-    node: 'https://rpc.preprod.midnight.network',
-    nodeWS: 'wss://rpc.preprod.midnight.network',
+    walletNetworkId: 'preview',
+    networkId: 'preview',
+    indexer: 'https://indexer.preview.midnight.network/api/v4/graphql',
+    indexerWS: 'wss://indexer.preview.midnight.network/api/v4/graphql/ws',
+    node: 'https://rpc.preview.midnight.network',
+    nodeWS: 'wss://rpc.preview.midnight.network',
     proofServer: 'http://localhost:6300',
   };
 
-  console.log('Building Preprod wallet provider...');
+  console.log('Building Preview wallet provider...');
   const walletProvider = await MidnightWalletProvider.build(logger, envConfig, seed);
   await walletProvider.start();
 
@@ -54,9 +54,9 @@ async function main() {
 
   const providers = {
     privateStateProvider: levelPrivateStateProvider({
-      privateStateStoreName: 'preprod-auction-store',
-      signingKeyStoreName: 'preprod-auction-signing-keys',
-      privateStoragePasswordProvider: () => 'Preprod-Test-2026!',
+      privateStateStoreName: 'preview-auction-store',
+      signingKeyStoreName: 'preview-auction-signing-keys',
+      privateStoragePasswordProvider: () => 'Preview-Test-2026!',
       accountId: seed,
     }),
     publicDataProvider: indexerPublicDataProvider(envConfig.indexer, envConfig.indexerWS),
@@ -66,7 +66,7 @@ async function main() {
     midnightProvider: walletProvider,
   };
 
-  console.log('Deploying Sealed-Bid Auction Contract on Preprod Network...');
+  console.log('Deploying Sealed-Bid Auction Contract on Preview Network...');
   const api = await AuctionAPI.deploy(providers, 'Rare NFT - Midnight Genesis #001', new Uint8Array(32), logger);
   console.log('====================================================');
   console.log(`SUCCESS! PREPROD DEPLOYED AUCTION CONTRACT ADDRESS: ${api.deployedContractAddress}`);

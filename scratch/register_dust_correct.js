@@ -29,17 +29,17 @@ import { setNetworkId } from '@midnight-ntwrk/midnight-js-network-id';
 import { MidnightWalletProvider } from '../auction-cli/dist/auction-cli/src/midnight-wallet-provider.js';
 
 async function main() {
-  setNetworkId('preprod');
+  setNetworkId('preview');
   const logger = pino({ level: 'info' });
   const seed = 'f780f810991ad89f4b92f2b021d2b2c87d2c2e18594e4a5551ef66fc57f80aaa';
 
   const envConfig = {
-    walletNetworkId: 'preprod',
-    networkId: 'preprod',
-    indexer: 'https://indexer.preprod.midnight.network/api/v4/graphql',
-    indexerWS: 'wss://indexer.preprod.midnight.network/api/v4/graphql/ws',
-    node: 'https://rpc.preprod.midnight.network',
-    nodeWS: 'wss://rpc.preprod.midnight.network',
+    walletNetworkId: 'preview',
+    networkId: 'preview',
+    indexer: 'https://indexer.preview.midnight.network/api/v4/graphql',
+    indexerWS: 'wss://indexer.preview.midnight.network/api/v4/graphql/ws',
+    node: 'https://rpc.preview.midnight.network',
+    nodeWS: 'wss://rpc.preview.midnight.network',
     proofServer: 'http://localhost:6300',
   };
 
@@ -70,7 +70,7 @@ async function main() {
   console.log('Finalizing recipe...');
   const transaction = await walletProvider.wallet.finalizeRecipe(recipe);
 
-  console.log('Submitting DUST registration transaction to Preprod network...');
+  console.log('Submitting DUST registration transaction to Preview network...');
   const txId = await walletProvider.wallet.submitTransaction(transaction);
   console.log('====================================================');
   console.log('SUCCESS! DUST REGISTRATION TX ID:', txId);

@@ -131,7 +131,7 @@ The smart contract test suite in [`contract/src/test/`](contract/src/test/) form
 new-moon/
 ├── contract/       # Compact smart contracts (auction.compact, bboard.compact), ZK keys & 16 Vitest tests
 ├── auction-ui/     # React + Material UI DApp with dark glassmorphism design & Lace Wallet integration
-├── auction-cli/    # Menu-driven CLI launcher (preprod-remote) with local bid/salt persistence
+├── auction-cli/    # Menu-driven CLI launcher (preview-remote) with local bid/salt persistence
 ├── bboard-ui/      # Bulletin Board DApp UI
 ├── bboard-cli/     # Bulletin Board CLI launcher
 ├── api/            # TypeScript RxJS API wrappers for contract deployment & interaction
@@ -149,10 +149,10 @@ new-moon/
 - **Active Wallet Address**: `mn_addr_preview104k4g7p2vs09gm4grs5z6appy3d6yw406yecpv3lpgg09hqel65qlhndeh` (Funded and actively deploying)
 - **Note on Previously Mentioned Address**: The address `mn_addr_preview1j50upgdyyxxydqdjt4fq7p8j5tc7g0zx7m8dcn54ew7sgjcfaauq7hlsrf` was provided as a testing baseline but its seed is confirmed lost/unavailable. It will remain permanently unusable for deployment.
 
-### Historical Network: Preprod (Troubleshooting & Findings)
-*The following findings were recorded during initial deployment testing on the Preprod network and remain genuinely useful regarding SDK behavior and Midnight network DUST accrual.*
-- **Preprod Network Wallet Address**: `mn_addr_preprod1ym662fy9l5pdengdlr9mde7gnyxh5ep8ng7hqm3d4dtux3stgpgqrdst0q`
-- **Dust Accrual Timing Observation**: During testing, DUST was observed to accrue extremely slowly. Even ~15 minutes after registering UTXOs for dust generation via the faucet, the wallet's DUST balance remained at 0, indicating rate-limits or block throttling on Preprod.
+### Historical Network: Preview (Troubleshooting & Findings)
+*The following findings were recorded during initial deployment testing on the Preview network and remain genuinely useful regarding SDK behavior and Midnight network DUST accrual.*
+- **Preview Network Wallet Address**: `mn_addr_preview1ym662fy9l5pdengdlr9mde7gnyxh5ep8ng7hqm3d4dtux3stgpgqrdst0q`
+- **Dust Accrual Timing Observation**: During testing, DUST was observed to accrue extremely slowly. Even ~15 minutes after registering UTXOs for dust generation via the faucet, the wallet's DUST balance remained at 0, indicating rate-limits or block throttling on Preview.
 - **Error 138 & Wallet Fallback Bug**: Deployments repeatedly failed with "Custom Error 138". This was discovered to be caused by a fallback bug in the DApp's `midnight-wallet-provider.ts` code, which caught the underlying SDK `InsufficientFundsError` (triggered by lacking the 1001 DUST threshold) and retried the transaction without a `dustSecretKey`. This stripped the fee from the transaction, causing the node to rightly reject it with Error 138. Removing the fallback allows the true `InsufficientFundsError` to surface.
 
 ---
@@ -164,4 +164,4 @@ new-moon/
 - **Run Full Workspace CI**: `npm run ci`
 - **Run Local UI**: `npm run dev --workspace=@midnight-ntwrk/auction-ui`
 - **Run Preview CLI Launcher (Primary)**: `npm run preview-remote --workspace=@midnight-ntwrk/auction-cli`
-- **Run Preprod CLI Launcher (Legacy)**: `npm run preprod-remote --workspace=@midnight-ntwrk/auction-cli`
+- **Run Preview CLI Launcher (Legacy)**: `npm run preview-remote --workspace=@midnight-ntwrk/auction-cli`

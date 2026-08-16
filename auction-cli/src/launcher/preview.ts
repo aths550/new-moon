@@ -32,9 +32,9 @@ const origTlsConnect = tls.connect;
 
 import { createLogger } from "../logger-utils.js";
 import { run } from "../index.js";
-import { PreprodRemoteConfig } from "../config.js";
+import { PreviewRemoteConfig } from "../config.js";
 
-const config = new PreprodRemoteConfig();
+const config = new PreviewRemoteConfig();
 const logger = await createLogger(config.logDir);
 const testEnvironment = config.getEnvironment(logger);
 await run(config, testEnvironment, logger);
