@@ -101,7 +101,9 @@ export class BrowserDeployedAuctionManager implements DeployedAuctionAPIProvider
     this.#auctionDeploymentsSubject = new BehaviorSubject<
       Array<BehaviorSubject<AuctionDeployment>>
     >([]);
-    this.#walletAddressSubject = new BehaviorSubject<string | undefined>(undefined);
+    this.#walletAddressSubject = new BehaviorSubject<string | undefined>(
+      undefined,
+    );
     this.auctionDeployments$ = this.#auctionDeploymentsSubject;
     this.walletAddress$ = this.#walletAddressSubject;
   }
@@ -150,7 +152,7 @@ export class BrowserDeployedAuctionManager implements DeployedAuctionAPIProvider
       this.#initializedProviders ??
       (this.#initializedProviders = initializeProviders(
         this.logger,
-        this.#walletAddressSubject
+        this.#walletAddressSubject,
       ))
     );
   }
@@ -232,7 +234,7 @@ export class BrowserDeployedAuctionManager implements DeployedAuctionAPIProvider
 
 const initializeProviders = async (
   logger: Logger,
-  walletAddressSubject: BehaviorSubject<string | undefined>
+  walletAddressSubject: BehaviorSubject<string | undefined>,
 ): Promise<AuctionProviders> => {
   const networkId = import.meta.env.VITE_NETWORK_ID as NetworkId;
   const connectedAPI = await connectToWallet(logger, networkId);
@@ -324,7 +326,10 @@ const isCompatibleWallet = (wallet: unknown): wallet is InitialAPI =>
   !!wallet &&
   typeof wallet === "object" &&
   "apiVersion" in wallet &&
-  semver.satisfies((wallet as InitialAPI).apiVersion, COMPATIBLE_CONNECTOR_API_VERSION);
+  semver.satisfies(
+    (wallet as InitialAPI).apiVersion,
+    COMPATIBLE_CONNECTOR_API_VERSION,
+  );
 
 const getFirstCompatibleWallet = (): InitialAPI | undefined => {
   if (!window.midnight) return undefined;
@@ -374,7 +379,11 @@ const connectToWallet = (
       filter((connectorAPI): connectorAPI is InitialAPI => !!connectorAPI),
       tap((connectorAPI) => {
         logger.info(
-          { name: connectorAPI.name, rdns: connectorAPI.rdns, apiVersion: connectorAPI.apiVersion },
+          {
+            name: connectorAPI.name,
+            rdns: connectorAPI.rdns,
+            apiVersion: connectorAPI.apiVersion,
+          },
           "Compatible wallet connector API found. Connecting.",
         );
       }),
@@ -392,7 +401,14 @@ const connectToWallet = (
       concatMap(async (initialAPI) => {
         logger.info({ networkId }, "Calling initialAPI.connect(networkId)...");
         console.log("[auction-ui] initialAPI keys:", Object.keys(initialAPI));
-        console.log("[auction-ui] initialAPI.name:", initialAPI.name, "rdns:", initialAPI.rdns, "apiVersion:", initialAPI.apiVersion);
+        console.log(
+          "[auction-ui] initialAPI.name:",
+          initialAPI.name,
+          "rdns:",
+          initialAPI.rdns,
+          "apiVersion:",
+          initialAPI.apiVersion,
+        );
         console.log("[auction-ui] networkId being passed:", networkId);
         try {
           const connectedAPI = await initialAPI.connect(networkId);
@@ -401,7 +417,10 @@ const connectToWallet = (
           console.log("[auction-ui] connectionStatus:", connectionStatus);
           return connectedAPI;
         } catch (connectError) {
-          console.error("[auction-ui] REAL ERROR from initialAPI.connect():", connectError);
+          console.error(
+            "[auction-ui] REAL ERROR from initialAPI.connect():",
+            connectError,
+          );
           logger.error({ error: connectError }, "initialAPI.connect() threw");
           throw connectError;
         }
@@ -417,9 +436,17 @@ const connectToWallet = (
           }),
       }),
       catchError((error) => {
-        console.error("[auction-ui] FULL catchError - real error object:", error);
-        logger.error({ error: String(error), stack: error?.stack }, "connectToWallet pipeline error");
-        return throwError(() => error instanceof Error ? error : new Error(String(error)));
+        console.error(
+          "[auction-ui] FULL catchError - real error object:",
+          error,
+        );
+        logger.error(
+          { error: String(error), stack: error?.stack },
+          "connectToWallet pipeline error",
+        );
+        return throwError(() =>
+          error instanceof Error ? error : new Error(String(error)),
+        );
       }),
     ),
   );

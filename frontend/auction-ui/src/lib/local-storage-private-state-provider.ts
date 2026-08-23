@@ -61,7 +61,6 @@ export const createLocalStoragePrivateStateProvider = <
   };
 
   const encode = <T>(value: T): string => JSON.stringify(value);
-  const decode = <T>(value: string): T => JSON.parse(value) as T;
 
   const exportPrivateStatePayload = (
     address: ContractAddress,
@@ -137,6 +136,7 @@ export const createLocalStoragePrivateStateProvider = <
         salt: "in-memory-private-state-provider",
       });
     },
+
     importPrivateStates(
       _exportData: PrivateStateExport,
       _options?: ImportPrivateStatesOptions,
@@ -155,9 +155,10 @@ export const createLocalStoragePrivateStateProvider = <
         salt: "in-memory-signing-key-provider",
       });
     },
+
     importSigningKeys(
-      exportData: SigningKeyExport,
-      options?: ImportSigningKeysOptions,
+      _exportData: SigningKeyExport,
+      _options?: ImportSigningKeysOptions,
     ): Promise<ImportSigningKeysResult> {
       return Promise.reject(new Error("importSigningKeys not implemented"));
     },

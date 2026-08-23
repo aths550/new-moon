@@ -59,6 +59,16 @@ jobs:
           npm run ci
 
       - name: Compile bboard-ui
-        working-directory: bboard-ui
+        working-directory: frontend/bboard-ui
+        run: |
+          npm run ci
+
+      - name: Compile auction-cli
+        working-directory: auction-cli
+        run: |
+          npm run ci
+
+      - name: Compile auction-ui
+        working-directory: frontend/auction-ui
         run: |
           npm run ci

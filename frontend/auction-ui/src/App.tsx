@@ -2,7 +2,12 @@ import React, { useState, useCallback, useEffect } from "react";
 import { type Observable } from "rxjs";
 import { useDeployedAuctionContext } from "./hooks/useDeployedAuctionContext";
 import { type AuctionDeployment } from "./contexts/BrowserDeployedAuctionManager";
-import { type DeployedAuctionAPI, type AuctionDerivedState, computeCommitment, auctionPrivateStateKey } from "../../../api/src/index.js";
+import {
+  type DeployedAuctionAPI,
+  type AuctionDerivedState,
+  computeCommitment,
+  auctionPrivateStateKey,
+} from "../../../api/src/index.js";
 import { getBidderIdentity } from "./lib/identity.js";
 import {
   ThemeProvider,
@@ -21,7 +26,6 @@ import {
   Container,
   Alert,
   LinearProgress,
-  Link,
   Divider,
   Paper,
 } from "@mui/material";
@@ -56,11 +60,16 @@ interface LocalBid {
 const App: React.FC = () => {
   const apiProvider = useDeployedAuctionContext();
   const contractAddress = import.meta.env.VITE_CONTRACT_ADDRESS ?? "";
-  const [walletStatus, setWalletStatus] = useState<WalletStatus>("disconnected");
-  const [walletAddress, setWalletAddress] = useState<string | undefined>(undefined);
+  const [walletStatus, setWalletStatus] =
+    useState<WalletStatus>("disconnected");
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [_walletAddress, setWalletAddress] = useState<string | undefined>(
+    undefined,
+  );
   const [auctionApi, setAuctionApi] = useState<DeployedAuctionAPI | null>(null);
   const [localAllowlistRoot, setLocalAllowlistRoot] = useState<string>("none");
-  const [onChainAllowlistRoot, setOnChainAllowlistRoot] = useState<string>("none");
+  const [onChainAllowlistRoot, setOnChainAllowlistRoot] =
+    useState<string>("none");
 
   useEffect(() => {
     if (contractAddress) {
@@ -82,7 +91,8 @@ const App: React.FC = () => {
     }
   }, [apiProvider]);
 
-  const [deployment$, setDeployment$] = useState<Observable<AuctionDeployment> | null>(null);
+  const [deployment$, setDeployment$] =
+    useState<Observable<AuctionDeployment> | null>(null);
 
   useEffect(() => {
     if (deployment$) {
@@ -111,22 +121,27 @@ const App: React.FC = () => {
     if (auctionApi) {
       const sub = auctionApi.state$.subscribe((state: AuctionDerivedState) => {
         // Map 0 -> Commit, 1 -> Reveal, 2 -> Ended
-        const phaseStr = state.state === 0 ? "Commit" : state.state === 1 ? "Reveal" : "Ended";
+        const phaseStr =
+          Number(state.state) === 0
+            ? "Commit"
+            : Number(state.state) === 1
+              ? "Reveal"
+              : "Ended";
         setAuctionPhase(phaseStr);
         setHighestBid(state.highestBidAmount);
         setHighestCommitment(
           Array.from(state.highestBidCommitment)
-            .map((b: any) => b.toString(16).padStart(2, "0"))
+            .map((b: number) => b.toString(16).padStart(2, "0"))
             .join(""),
         );
         setCommitmentsCount(Number(state.commitmentCount));
         setOnChainAllowlistRoot(
           Array.from(state.allowlistMerkleRoot)
-            .map((b: any) => b.toString(16).padStart(2, "0"))
+            .map((b: number) => b.toString(16).padStart(2, "0"))
             .join(""),
         );
-        if (state.state === 2) {
-           setWinningAmount(state.winningAmount);
+        if (Number(state.state) === 2) {
+          setWinningAmount(state.winningAmount);
         }
       });
       return () => sub.unsubscribe();
@@ -140,7 +155,8 @@ const App: React.FC = () => {
   const [highestCommitment, setHighestCommitment] = useState<string>("none");
   const [commitmentsCount, setCommitmentsCount] = useState<number>(0);
   const [myBid, setMyBid] = useState<LocalBid | null>(null);
-  const [revealedBidsCount, setRevealedBidsCount] = useState<number>(0);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [_revealedBidsCount, _setRevealedBidsCount] = useState<number>(0);
   const [winningAmount, setWinningAmount] = useState<bigint>(0n);
   const [statusMessage, setStatusMessage] = useState<string>(
     "Welcome to the Sealed-Bid Auction! In Commit phase, bids are sealed. Switch to Reveal phase to unseal bids and update the highest bid!",
@@ -167,16 +183,21 @@ const App: React.FC = () => {
   const handleSyncAllowlist = useCallback(async () => {
     if (!auctionApi) return;
     try {
-      setStatusMessage("Submitting sync allowlist transaction to Lace wallet...");
+      setStatusMessage(
+        "Submitting sync allowlist transaction to Lace wallet...",
+      );
       setStatusSeverity("info");
       const rootBytes = getBidderIdentity(contractAddress).merkleRoot;
       await auctionApi.updateAllowlistRoot(rootBytes);
       setStatusSeverity("success");
-      setStatusMessage("✅ Allowlist Merkle Root synced successfully! You are now authorized to bid.");
-    } catch (e: any) {
+      setStatusMessage(
+        "✅ Allowlist Merkle Root synced successfully! You are now authorized to bid.",
+      );
+    } catch (e: unknown) {
+      const err = e instanceof Error ? e : new Error(String(e));
       console.error(e);
       setStatusSeverity("error");
-      setStatusMessage(`Failed to sync allowlist: ${e.message}`);
+      setStatusMessage(`Failed to sync allowlist: ${err.message}`);
     }
   }, [auctionApi, contractAddress]);
 
@@ -207,7 +228,7 @@ const App: React.FC = () => {
       // 1. Compute commitment hash using pure circuit
       const commitmentHashBytes = computeCommitment(salt, amount);
       const commitmentHashHex = Array.from(commitmentHashBytes)
-        .map((b: any) => b.toString(16).padStart(2, "0"))
+        .map((b: number) => b.toString(16).padStart(2, "0"))
         .join("");
 
       // 2. Update private state locally
@@ -238,10 +259,11 @@ const App: React.FC = () => {
       setStatusMessage(
         `🔒 Sealed bid of ${val} tNIGHT committed! Amount & salt stay on your local device. Only commitment hash 0x${commitmentHashHex.slice(0, 12)}... recorded on-chain. Note: Highest bid stays 0 until Reveal phase!`,
       );
-    } catch (e: any) {
-      console.error(e);
+    } catch (e: unknown) {
+      const err = e instanceof Error ? e : new Error(String(e));
+      console.error(err);
       setStatusSeverity("error");
-      setStatusMessage(`Failed to commit bid: ${e.message}`);
+      setStatusMessage(`Failed to commit bid: ${err.message}`);
     }
   }, [bidInput, auctionApi, apiProvider]);
 
@@ -256,10 +278,11 @@ const App: React.FC = () => {
       setStatusMessage(
         "🔓 Auction advanced to REVEAL phase! Bidders can now reveal their sealed bids to evaluate the leading bid on-chain.",
       );
-    } catch (e: any) {
-      console.error(e);
+    } catch (e: unknown) {
+      const err = e instanceof Error ? e : new Error(String(e));
+      console.error(err);
       setStatusSeverity("error");
-      setStatusMessage(`Failed to advance phase: ${e.message}`);
+      setStatusMessage(`Failed to advance phase: ${err.message}`);
     }
   }, [auctionApi]);
 
@@ -272,27 +295,31 @@ const App: React.FC = () => {
       await auctionApi.revealBid();
       setStatusSeverity("success");
       setStatusMessage("👁️ Bid successfully revealed on-chain!");
-    } catch (e: any) {
-      console.error(e);
+    } catch (e: unknown) {
+      const err = e instanceof Error ? e : new Error(String(e));
+      console.error(err);
       setStatusSeverity("error");
-      setStatusMessage(`Failed to reveal bid: ${e.message}`);
+      setStatusMessage(`Failed to reveal bid: ${err.message}`);
     }
   }, [auctionApi]);
 
   const handleEndAuction = useCallback(async () => {
     if (!auctionApi) return;
     try {
-      setStatusMessage("Submitting close auction transaction to Lace wallet...");
+      setStatusMessage(
+        "Submitting close auction transaction to Lace wallet...",
+      );
       setStatusSeverity("info");
       await auctionApi.closeAuction();
       setStatusSeverity("success");
       setStatusMessage(
         `🏆 Auction ENDED! Final Winner Amount is verified on-chain. All losing bids were kept completely private!`,
       );
-    } catch (e: any) {
-      console.error(e);
+    } catch (e: unknown) {
+      const err = e instanceof Error ? e : new Error(String(e));
+      console.error(err);
       setStatusSeverity("error");
-      setStatusMessage(`Failed to close auction: ${e.message}`);
+      setStatusMessage(`Failed to close auction: ${err.message}`);
     }
   }, [auctionApi]);
 
@@ -334,7 +361,9 @@ const App: React.FC = () => {
               Sealed-Bid Auction — Midnight Network
             </Typography>
             <Chip
-              label={import.meta.env.VITE_NETWORK_ID?.toUpperCase() ?? "PREVIEW"}
+              label={
+                import.meta.env.VITE_NETWORK_ID?.toUpperCase() ?? "PREVIEW"
+              }
               size="small"
               sx={{
                 mr: 2,
@@ -444,19 +473,28 @@ const App: React.FC = () => {
               </Box>
 
               {/* Sync Allowlist Warning */}
-              {isWalletActive && onChainAllowlistRoot !== "none" && localAllowlistRoot !== "none" && onChainAllowlistRoot !== localAllowlistRoot && (
-                <Alert
-                  severity="warning"
-                  sx={{ mb: 2, borderRadius: 2 }}
-                  action={
-                    <Button color="inherit" size="small" variant="outlined" onClick={handleSyncAllowlist}>
-                      Sync Allowlist
-                    </Button>
-                  }
-                >
-                  Your local identity is not on the authorized allowlist. Click Sync Allowlist to add yourself.
-                </Alert>
-              )}
+              {isWalletActive &&
+                onChainAllowlistRoot !== "none" &&
+                localAllowlistRoot !== "none" &&
+                onChainAllowlistRoot !== localAllowlistRoot && (
+                  <Alert
+                    severity="warning"
+                    sx={{ mb: 2, borderRadius: 2 }}
+                    action={
+                      <Button
+                        color="inherit"
+                        size="small"
+                        variant="outlined"
+                        onClick={handleSyncAllowlist}
+                      >
+                        Sync Allowlist
+                      </Button>
+                    }
+                  >
+                    Your local identity is not on the authorized allowlist.
+                    Click Sync Allowlist to add yourself.
+                  </Alert>
+                )}
 
               <Divider sx={{ my: 2, borderColor: "rgba(255,255,255,0.08)" }} />
 

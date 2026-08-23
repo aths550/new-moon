@@ -15,6 +15,7 @@ const config = tseslint.config(
   {
     ignores: ["src/managed"],
     rules: {
+      "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_", "destructuredArrayIgnorePattern": "^_" }],
       "@typescript-eslint/no-misused-promises": "off", // https://github.com/typescript-eslint/typescript-eslint/issues/5807
       "@typescript-eslint/no-floating-promises": "warn",
       "@typescript-eslint/promise-function-async": "off",
