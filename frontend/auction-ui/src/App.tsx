@@ -164,6 +164,7 @@ const App: React.FC = () => {
   const [statusSeverity, setStatusSeverity] = useState<
     "info" | "success" | "warning" | "error"
   >("info");
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   const connectWallet = useCallback(() => {
     setWalletStatus("connecting");
@@ -203,6 +204,7 @@ const App: React.FC = () => {
 
   // 1. Commit Bid Action
   const handleCommitBid = useCallback(async () => {
+    if (isSubmitting) return;
     if (!auctionApi || !apiProvider) {
       setStatusSeverity("error");
       setStatusMessage("Wallet not connected or auction API not resolved!");
@@ -218,6 +220,7 @@ const App: React.FC = () => {
       return;
     }
 
+    setIsSubmitting(true);
     try {
       const amount = BigInt(val);
       const salt = crypto.getRandomValues(new Uint8Array(32));
@@ -264,12 +267,16 @@ const App: React.FC = () => {
       console.error(err);
       setStatusSeverity("error");
       setStatusMessage(`Failed to commit bid: ${err.message}`);
+    } finally {
+      setIsSubmitting(false);
     }
-  }, [bidInput, auctionApi, apiProvider]);
+  }, [bidInput, auctionApi, apiProvider, isSubmitting]);
 
   // 2. Advance Phase Action
   const handleAdvanceToReveal = useCallback(async () => {
+    if (isSubmitting) return;
     if (!auctionApi) return;
+    setIsSubmitting(true);
     try {
       setStatusMessage("Submitting transaction to Lace wallet...");
       setStatusSeverity("info");
@@ -283,12 +290,16 @@ const App: React.FC = () => {
       console.error(err);
       setStatusSeverity("error");
       setStatusMessage(`Failed to advance phase: ${err.message}`);
+    } finally {
+      setIsSubmitting(false);
     }
-  }, [auctionApi]);
+  }, [auctionApi, isSubmitting]);
 
   // 3. Reveal Bid Action
   const handleRevealBid = useCallback(async () => {
+    if (isSubmitting) return;
     if (!auctionApi) return;
+    setIsSubmitting(true);
     try {
       setStatusMessage("Submitting reveal transaction to Lace wallet...");
       setStatusSeverity("info");
@@ -300,11 +311,15 @@ const App: React.FC = () => {
       console.error(err);
       setStatusSeverity("error");
       setStatusMessage(`Failed to reveal bid: ${err.message}`);
+    } finally {
+      setIsSubmitting(false);
     }
-  }, [auctionApi]);
+  }, [auctionApi, isSubmitting]);
 
   const handleEndAuction = useCallback(async () => {
+    if (isSubmitting) return;
     if (!auctionApi) return;
+    setIsSubmitting(true);
     try {
       setStatusMessage(
         "Submitting close auction transaction to Lace wallet...",
@@ -320,8 +335,10 @@ const App: React.FC = () => {
       console.error(err);
       setStatusSeverity("error");
       setStatusMessage(`Failed to close auction: ${err.message}`);
+    } finally {
+      setIsSubmitting(false);
     }
-  }, [auctionApi]);
+  }, [auctionApi, isSubmitting]);
 
   const isWalletActive = walletStatus === "connected";
   const phaseColor =
@@ -446,6 +463,7 @@ const App: React.FC = () => {
                     }
                     onClick={() => setAuctionPhase("Commit")}
                     sx={{ borderRadius: 2, textTransform: "none" }}
+                    disabled={isSubmitting}
                   >
                     1. Commit
                   </Button>
@@ -456,6 +474,7 @@ const App: React.FC = () => {
                     }
                     onClick={handleAdvanceToReveal}
                     sx={{ borderRadius: 2, textTransform: "none" }}
+                    disabled={isSubmitting}
                   >
                     2. Reveal
                   </Button>
@@ -466,6 +485,7 @@ const App: React.FC = () => {
                     }
                     onClick={handleEndAuction}
                     sx={{ borderRadius: 2, textTransform: "none" }}
+                    disabled={isSubmitting}
                   >
                     3. End
                   </Button>
@@ -667,12 +687,13 @@ const App: React.FC = () => {
                   <Button
                     variant="contained"
                     onClick={handleCommitBid}
+                    disabled={isSubmitting}
                     sx={{
                       minWidth: 180,
                       borderRadius: 3,
                       textTransform: "none",
                       fontWeight: 600,
-                      background: "linear-gradient(135deg, #7c4dff, #536dfe)",
+                      background: isSubmitting ? "gray" : "linear-gradient(135deg, #7c4dff, #536dfe)",
                     }}
                   >
                     Commit Bid
@@ -711,13 +732,14 @@ const App: React.FC = () => {
                 <Button
                   variant="contained"
                   onClick={handleRevealBid}
+                  disabled={isSubmitting}
                   sx={{
                     borderRadius: 3,
                     textTransform: "none",
                     fontWeight: 600,
                     px: 4,
                     py: 1.5,
-                    background: "linear-gradient(135deg, #ff9100, #ff6d00)",
+                    background: isSubmitting ? "gray" : "linear-gradient(135deg, #ff9100, #ff6d00)",
                   }}
                 >
                   Reveal My Bid ({myBid ? myBid.amount.toString() : "10"}{" "}
