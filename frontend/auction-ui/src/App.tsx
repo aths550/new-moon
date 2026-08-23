@@ -545,7 +545,7 @@ const App: React.FC = () => {
                     </Typography>
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
-                    Revealed Bids: {revealedBidsCount}
+                    Revealed Bids: {_revealedBidsCount}
                   </Typography>
                 </Box>
 
