@@ -33,11 +33,11 @@ import DeleteIcon from '@mui/icons-material/DeleteOutlined';
 import WriteIcon from '@mui/icons-material/EditNoteOutlined';
 import CopyIcon from '@mui/icons-material/ContentPasteOutlined';
 import StopIcon from '@mui/icons-material/HighlightOffOutlined';
-import { type BBoardDerivedState, type DeployedBBoardAPI } from '../../../api/src/index';
+import { type BBoardDerivedState, type DeployedBBoardAPI } from '../../../../api/src/index';
 import { useDeployedBoardContext } from '../hooks';
 import { type BoardDeployment } from '../contexts';
 import { type Observable } from 'rxjs';
-import { State } from '../../../contract/src/index';
+import { State } from '../../../../contract/src/index';
 import { EmptyCardContent } from './Board.EmptyCardContent';
 
 /** The props required by the {@link Board} component. */

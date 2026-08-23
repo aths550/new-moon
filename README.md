@@ -3,16 +3,20 @@
 A production-grade, zero-knowledge Decentralized Application (DApp) built on the **[Midnight Network](https://midnight.network/)** using the **Compact** smart contract language.
 
 [![Level 3 Submission](https://img.shields.io/badge/Level--3-First%20Quarter-6366f1.svg)](https://midnight.network/)
-[![CI Status](https://github.com/aths550/new-moon/actions/workflows/ci.yaml/badge.svg)](https://github.com/aths550/new-moon/actions/workflows/ci.yaml)
+[![CI](https://github.com/aths550/new-moon/actions/workflows/ci.yaml/badge.svg)](https://github.com/aths550/new-moon/actions/workflows/ci.yaml)
 [![Compact Compiler](https://img.shields.io/badge/Compact%20Compiler-0.31.1-1abc9c.svg)](https://midnight.network/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9.3-blue.svg)](https://www.typescriptlang.org/)
 
 ---
 
 
-## 1. Initial Product Idea: Enterprise Sealed-Bid NFT & Asset Auction
+## 1. Product Proposal: Sealed-Bid Auction
 
-A privacy-preserving sealed-bid auction platform designed for high-value NFT or enterprise asset sales. In traditional public-ledger auctions, bidder identities, wallet balances, and purchasing strategies are completely exposed to competitors and chain analysis. By building on Midnight Network, this DApp allows users to submit their bids as private, local witnesses. Only the *winning* bid is ever conditionally revealed and written to the public ledger; all losing bids and their values remain entirely off-chain, ensuring complete price privacy.
+**Selected Idea:** *Sealed-Bid Auction — private bids, verifiable winner* (from the official Midnight Idea List).
+
+This project strictly implements the sealed-bid auction concept from the prompt list. In traditional public-ledger auctions, bidder identities, wallet balances, and purchasing strategies are completely exposed to competitors and chain analysis. By building on Midnight Network, this DApp allows users to submit their bids as private, local witnesses. Only the *winning* bid is ever conditionally revealed and written to the public ledger; all losing bids and their values remain entirely off-chain, ensuring complete price privacy.
+
+As an additional privacy layer, the auction implements an 8-level Merkle tree allowlist, ensuring only authorized bidders can participate without publicly linking their on-chain identity to the allowlist.
 
 ### The Solution### The Solution: Zero-Knowledge Sealed-Bid Commit-Reveal
 This application implements a **privacy-preserving sealed-bid auction** on Midnight Network:
@@ -56,7 +60,24 @@ npm run preview-remote --workspace=@midnight-ntwrk/auction-cli
 ```
 
 
-## 3. Technical Architecture & Privacy Model (Public State vs Private Witness)
+## 3. Technical Architecture & Privacy Model
+
+### Explicit Privacy Guarantees
+To understand the privacy model, consider this critical question: **What can an outside observer of the chain learn about this auction? What can they NOT learn?**
+
+**What an observer CAN learn (Visible):**
+- The item description being auctioned.
+- The Merkle root of the allowed bidders (but not the list of bidders itself).
+- Cryptographic commitment hashes of submitted bids (meaningless strings without the underlying data).
+- The transition of auction phases (`Commit` -> `Reveal` -> `Ended`).
+- The **final winning bid amount** (only revealed at the end of the auction to the ledger).
+
+**What an observer CANNOT learn (Never Visible):**
+- The **amounts of any losing bids** (these never touch the public ledger, not even transiently).
+- The individual identities of the bidders beyond the fact that they mathematically proved membership in the allowlist.
+- The salts used to generate the bid commitments.
+
+### State and Circuit Breakdown
 
 | Phase | Public Ledger Data | Private Local Data (Witness) | ZK Circuit Execution |
 | :--- | :--- | :--- | :--- |
@@ -98,19 +119,9 @@ Our contract was successfully deployed to the Preview network:
 
 ## 5. Formally Verified Test Suite (16/16 Passing Tests)
 
-The smart contract test suite in [`contract/src/test/`](contract/src/test/) formally verifies all ledger state transitions and zero-knowledge privacy guarantees:
+The smart contract test suite in [`contract/src/test/`](contract/src/test/) formally verifies all ledger state transitions and zero-knowledge privacy guarantees.
 
-```text
- RUN  v4.1.10 /Users/atharvasandipnarute/new-moon/contract
-
- ✓ src/test/bboard.test.ts (7 tests) 129ms
- ✓ src/test/auction.test.ts (9 tests) 198ms
-
- Test Files  2 passed (2)
-      Tests  16 passed (16)
-   Start at  21:08:30
-   Duration  368ms (transform 135ms, setup 0ms, import 194ms, tests 327ms, environment 0ms)
-```
+![Test Suite Output](assets/test_output.png)
 
 ### Verified Test Cases:
 1. `initializes auction in Commit phase with item and Merkle root`

@@ -18,7 +18,7 @@ import {
   type BBoardCircuitKeys,
   type BBoardProviders,
   type DeployedBBoardAPI,
-} from '../../../api/src/index';
+} from '../../../../api/src/index';
 import { type ContractAddress, fromHex, toHex } from '@midnight-ntwrk/midnight-js-protocol/compact-runtime';
 import {
   BehaviorSubject,
