@@ -27,6 +27,28 @@ export const logger = pino.pino({
 
 logger.trace(`networkId = ${networkId}`);
 
+// Retry transient proof-server failures (502/503) with backoff, since shared
+// preview infra can be briefly overloaded. Real errors (400, 413, etc.) pass through untouched.
+const originalFetch = window.fetch.bind(window);
+window.fetch = async (...args: Parameters<typeof fetch>) => {
+  const input = args[0];
+  const url = typeof input === "string" ? input : (input as Request).url;
+  if (!url.includes("/api/prove/")) {
+    return originalFetch(...args);
+  }
+
+  let lastResponse: Response | undefined;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const res = await originalFetch(...args);
+    if (res.status !== 502 && res.status !== 503) {
+      return res;
+    }
+    lastResponse = res;
+    await new Promise((resolve) => setTimeout(resolve, 1500 * (attempt + 1)));
+  }
+  return lastResponse as Response;
+};
+
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
     <CssBaseline />
