@@ -52,7 +52,7 @@ import {
   buildIdentityPrivateState,
   saveBidderIdentity,
 } from "../lib/identity.js";
-import { buildMerkleTree } from "../../../../contract/src/auction-merkle.js";
+import { buildMerkleTree, getMerkleProof } from "../../../../contract/src/auction-merkle.js";
 import {
   createAuctionPrivateState,
   AuctionPrivateState,
@@ -167,10 +167,11 @@ export class BrowserDeployedAuctionManager implements DeployedAuctionAPIProvider
       const secretKey = new Uint8Array(32);
       crypto.getRandomValues(secretKey);
       const { root, layers } = buildMerkleTree([secretKey]);
+      const { merklePath, pathDirections } = getMerkleProof(layers, 0);
       const initialPrivateState = createAuctionPrivateState(
         secretKey,
-        [layers[0][1]], // Merkle path (just dummy for root calculation since deploy doesn't bid)
-        [true], // Path directions
+        merklePath, // Real 8-level Merkle proof for leaf 0 (deployer's own identity)
+        pathDirections, // Real path directions for leaf 0
         0n,
         new Uint8Array(32),
       );
