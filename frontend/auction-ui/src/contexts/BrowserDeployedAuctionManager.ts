@@ -245,6 +245,7 @@ const initializeProviders = async (
     fetch.bind(window),
   );
   const config = await connectedAPI.getConfiguration();
+  config.proverServerUri = `${window.location.origin}/api/prove`;
 
   const localStoragePrivateStateProvider =
     createLocalStoragePrivateStateProvider<string, AuctionPrivateState>(
