@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import { type Observable } from "rxjs";
 import { useDeployedAuctionContext } from "./hooks/useDeployedAuctionContext";
 import { type AuctionDeployment } from "./contexts/BrowserDeployedAuctionManager";
@@ -156,6 +156,7 @@ const App: React.FC = () => {
   const [highestCommitment, setHighestCommitment] = useState<string>("none");
   const [commitmentsCount, setCommitmentsCount] = useState<number>(0);
   const [myBid, setMyBid] = useState<LocalBid | null>(null);
+  const isSubmittingRef = useRef(false);
 
   const [_revealedBidsCount, _setRevealedBidsCount] = useState<number>(0);
   const [winningAmount, setWinningAmount] = useState<bigint>(0n);
@@ -205,7 +206,7 @@ const App: React.FC = () => {
 
   // 1. Commit Bid Action
   const handleCommitBid = useCallback(async () => {
-    if (isSubmitting) return;
+    if (isSubmitting || isSubmittingRef.current) return;
     if (!auctionApi || !apiProvider) {
       setStatusSeverity("error");
       setStatusMessage("Wallet not connected or auction API not resolved!");
@@ -222,6 +223,7 @@ const App: React.FC = () => {
     }
 
     setIsSubmitting(true);
+    isSubmittingRef.current = true;
     try {
       const amount = BigInt(val);
       const salt = crypto.getRandomValues(new Uint8Array(32));
@@ -248,16 +250,19 @@ const App: React.FC = () => {
         throw new Error("Local private state not found");
       }
 
-      const newBid: LocalBid = { amount, salt, commitmentHashHex };
-      setMyBid(newBid);
-
-      localStorage.setItem("auction_bid_amount", amount.toString());
-      localStorage.setItem("auction_bid_salt", saltHex);
-
       // 3. Call the real circuit
       setStatusMessage("Submitting transaction to Lace wallet...");
       setStatusSeverity("info");
       await auctionApi.commitBid(commitmentHashBytes);
+
+      // Persist local bid state ONLY after the on-chain commit succeeds, so a
+      // failed or duplicate submission can never overwrite the salt/amount
+      // that actually matches what's on the ledger (this previously caused
+      // "Revealed amount and salt do not match commitment" on reveal).
+      const newBid: LocalBid = { amount, salt, commitmentHashHex };
+      setMyBid(newBid);
+      localStorage.setItem("auction_bid_amount", amount.toString());
+      localStorage.setItem("auction_bid_salt", saltHex);
 
       setStatusSeverity("success");
       setStatusMessage(
@@ -270,6 +275,7 @@ const App: React.FC = () => {
       setStatusMessage(`Failed to commit bid: ${err.message}`);
     } finally {
       setIsSubmitting(false);
+      isSubmittingRef.current = false;
     }
   }, [bidInput, auctionApi, apiProvider, isSubmitting]);
 
