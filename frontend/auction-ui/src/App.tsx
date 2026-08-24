@@ -237,28 +237,31 @@ const App: React.FC = () => {
         .map((b: number) => b.toString(16).padStart(2, "0"))
         .join("");
 
-      // 2. Update private state locally
+      // Fetch the private state provider + current state up front, but do
+      // NOT write the new bidAmount/bidSalt into it yet. revealBid() reads
+      // its witness data from this provider, so writing here (before we know
+      // commitBid succeeded) let a failed/duplicate attempt permanently
+      // clobber the salt for a bid that had already committed successfully.
       const psProvider = await apiProvider.getPrivateStateProvider();
       const ps = await psProvider.get(auctionPrivateStateKey);
-      if (ps) {
-        await psProvider.set(auctionPrivateStateKey, {
-          ...ps,
-          bidAmount: amount,
-          bidSalt: salt,
-        });
-      } else {
+      if (!ps) {
         throw new Error("Local private state not found");
       }
 
-      // 3. Call the real circuit
+      // Call the real circuit
       setStatusMessage("Submitting transaction to Lace wallet...");
       setStatusSeverity("info");
       await auctionApi.commitBid(commitmentHashBytes);
 
-      // Persist local bid state ONLY after the on-chain commit succeeds, so a
-      // failed or duplicate submission can never overwrite the salt/amount
-      // that actually matches what's on the ledger (this previously caused
-      // "Revealed amount and salt do not match commitment" on reveal).
+      // Persist private state (used by revealBid's witnesses) AND local UI
+      // bid state ONLY after the on-chain commit succeeds, so a failed or
+      // duplicate submission can never overwrite the salt/amount that
+      // actually matches what's on the ledger.
+      await psProvider.set(auctionPrivateStateKey, {
+        ...ps,
+        bidAmount: amount,
+        bidSalt: salt,
+      });
       const newBid: LocalBid = { amount, salt, commitmentHashHex };
       setMyBid(newBid);
       localStorage.setItem("auction_bid_amount", amount.toString());
