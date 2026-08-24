@@ -7,6 +7,10 @@ A production-grade, zero-knowledge Decentralized Application (DApp) built on the
 [![Compact Compiler](https://img.shields.io/badge/Compact%20Compiler-0.31.1-1abc9c.svg)](https://midnight.network/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9.3-blue.svg)](https://www.typescriptlang.org/)
 
+**🔗 Live Demo:** [new-moon-pi.vercel.app](https://new-moon-pi.vercel.app)
+
+**🎥 Demo Video (1 min):** [Watch on Loom](PASTE_YOUR_LOOM_LINK_HERE)
+
 ---
 
 
