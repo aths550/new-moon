@@ -38,13 +38,21 @@ window.fetch = async (...args: Parameters<typeof fetch>) => {
   }
 
   let lastResponse: Response | undefined;
-  for (let attempt = 0; attempt < 3; attempt++) {
+  const maxAttempts = 6;
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
     const res = await originalFetch(...args);
     if (res.status !== 502 && res.status !== 503) {
       return res;
     }
     lastResponse = res;
-    await new Promise((resolve) => setTimeout(resolve, 1500 * (attempt + 1)));
+    if (attempt < maxAttempts - 1) {
+      // Backoff: 2s, 4s, 8s, 16s, 32s (~62s total) instead of the previous
+      // ~9s window, since the shared preview proof server can stay
+      // overloaded/restarting for longer than a few seconds at a time.
+      await new Promise((resolve) =>
+        setTimeout(resolve, 2000 * Math.pow(2, attempt)),
+      );
+    }
   }
   return lastResponse as Response;
 };
