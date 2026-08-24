@@ -55,6 +55,7 @@ interface LocalBid {
   amount: bigint;
   salt: Uint8Array;
   commitmentHashHex: string;
+  revealed?: boolean;
 }
 
 const App: React.FC = () => {
@@ -307,6 +308,7 @@ const App: React.FC = () => {
       setStatusSeverity("success");
       setStatusMessage("👁️ Bid successfully revealed on-chain!");
       _setRevealedBidsCount((prev) => prev + 1);
+      setMyBid((prev) => (prev ? { ...prev, revealed: true } : prev));
     } catch (e: unknown) {
       const err = e instanceof Error ? e : new Error(String(e));
       console.error(err);
@@ -628,18 +630,22 @@ const App: React.FC = () => {
                     </Box>
                     <Chip
                       label={
-                        auctionPhase === "Commit"
-                          ? "Sealed (Hidden)"
-                          : auctionPhase === "Reveal"
-                            ? "Ready to Reveal"
-                            : "Auction Ended"
+                        myBid.revealed
+                          ? "Revealed ✅"
+                          : auctionPhase === "Commit"
+                            ? "Sealed (Hidden)"
+                            : auctionPhase === "Reveal"
+                              ? "Ready to Reveal"
+                              : "Auction Ended"
                       }
                       color={
-                        auctionPhase === "Commit"
-                          ? "primary"
-                          : auctionPhase === "Reveal"
-                            ? "warning"
-                            : "success"
+                        myBid.revealed
+                          ? "success"
+                          : auctionPhase === "Commit"
+                            ? "primary"
+                            : auctionPhase === "Reveal"
+                              ? "warning"
+                              : "success"
                       }
                       size="small"
                     />
@@ -723,33 +729,44 @@ const App: React.FC = () => {
                   />
                   Step 2: Reveal Your Bid
                 </Typography>
-                <Typography
-                  variant="body2"
-                  color="text.secondary"
-                  sx={{ mb: 2 }}
-                >
-                  Click below to execute the ZK reveal circuit. If your bid
-                  exceeds the current highest bid ({highestBid.toString()}{" "}
-                  tNIGHT), it updates the on-chain ledger!
-                </Typography>
-                <Button
-                  variant="contained"
-                  onClick={handleRevealBid}
-                  disabled={isSubmitting}
-                  sx={{
-                    borderRadius: 3,
-                    textTransform: "none",
-                    fontWeight: 600,
-                    px: 4,
-                    py: 1.5,
-                    background: isSubmitting
-                      ? "gray"
-                      : "linear-gradient(135deg, #ff9100, #ff6d00)",
-                  }}
-                >
-                  Reveal My Bid ({myBid ? myBid.amount.toString() : "10"}{" "}
-                  tNIGHT)
-                </Button>
+                {myBid?.revealed ? (
+                  <Typography
+                    variant="body2"
+                    sx={{ color: "#00e676", fontWeight: 600 }}
+                  >
+                    ✅ Your bid has already been revealed on-chain. No further action needed.
+                  </Typography>
+                ) : (
+                  <>
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      sx={{ mb: 2 }}
+                    >
+                      Click below to execute the ZK reveal circuit. If your bid
+                      exceeds the current highest bid ({highestBid.toString()}{" "}
+                      tNIGHT), it updates the on-chain ledger!
+                    </Typography>
+                    <Button
+                      variant="contained"
+                      onClick={handleRevealBid}
+                      disabled={isSubmitting}
+                      sx={{
+                        borderRadius: 3,
+                        textTransform: "none",
+                        fontWeight: 600,
+                        px: 4,
+                        py: 1.5,
+                        background: isSubmitting
+                          ? "gray"
+                          : "linear-gradient(135deg, #ff9100, #ff6d00)",
+                      }}
+                    >
+                      Reveal My Bid ({myBid ? myBid.amount.toString() : "10"}{" "}
+                      tNIGHT)
+                    </Button>
+                  </>
+                )}
               </CardContent>
             </Card>
           )}
