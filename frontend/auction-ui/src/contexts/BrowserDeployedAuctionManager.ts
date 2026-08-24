@@ -52,7 +52,10 @@ import {
   buildIdentityPrivateState,
   saveBidderIdentity,
 } from "../lib/identity.js";
-import { buildMerkleTree, getMerkleProof } from "../../../../contract/src/auction-merkle.js";
+import {
+  buildMerkleTree,
+  getMerkleProof,
+} from "../../../../contract/src/auction-merkle.js";
 import {
   createAuctionPrivateState,
   AuctionPrivateState,
@@ -277,7 +280,7 @@ const initializeProviders = async (
     privateStateProvider: localStoragePrivateStateProvider,
     zkConfigProvider: keyMaterialProvider,
     proofProvider: httpClientProofProvider(
-      config.proverServerUri!,
+      config.proverServerUri,
       keyMaterialProvider,
     ),
     publicDataProvider: indexerPublicDataProvider(

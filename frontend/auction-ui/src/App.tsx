@@ -62,7 +62,7 @@ const App: React.FC = () => {
   const contractAddress = import.meta.env.VITE_CONTRACT_ADDRESS ?? "";
   const [walletStatus, setWalletStatus] =
     useState<WalletStatus>("disconnected");
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   const [_walletAddress, setWalletAddress] = useState<string | undefined>(
     undefined,
   );
@@ -155,7 +155,7 @@ const App: React.FC = () => {
   const [highestCommitment, setHighestCommitment] = useState<string>("none");
   const [commitmentsCount, setCommitmentsCount] = useState<number>(0);
   const [myBid, setMyBid] = useState<LocalBid | null>(null);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   const [_revealedBidsCount, _setRevealedBidsCount] = useState<number>(0);
   const [winningAmount, setWinningAmount] = useState<bigint>(0n);
   const [statusMessage, setStatusMessage] = useState<string>(
@@ -693,7 +693,9 @@ const App: React.FC = () => {
                       borderRadius: 3,
                       textTransform: "none",
                       fontWeight: 600,
-                      background: isSubmitting ? "gray" : "linear-gradient(135deg, #7c4dff, #536dfe)",
+                      background: isSubmitting
+                        ? "gray"
+                        : "linear-gradient(135deg, #7c4dff, #536dfe)",
                     }}
                   >
                     Commit Bid
@@ -739,7 +741,9 @@ const App: React.FC = () => {
                     fontWeight: 600,
                     px: 4,
                     py: 1.5,
-                    background: isSubmitting ? "gray" : "linear-gradient(135deg, #ff9100, #ff6d00)",
+                    background: isSubmitting
+                      ? "gray"
+                      : "linear-gradient(135deg, #ff9100, #ff6d00)",
                   }}
                 >
                   Reveal My Bid ({myBid ? myBid.amount.toString() : "10"}{" "}
