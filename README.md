@@ -9,7 +9,7 @@ A production-grade, zero-knowledge Decentralized Application (DApp) built on the
 
 **🔗 Live Demo:** [new-moon-pi.vercel.app](https://new-moon-pi.vercel.app)
 
-**🎥 Demo Video (1 min):** [Watch on Loom](PASTE_YOUR_LOOM_LINK_HERE)
+**🎥 Demo Video (1 min):** [Watch on Loom](https://www.loom.com/share/7269f26440514ed196d35c80667da6e1)
 
 ---
 
