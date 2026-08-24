@@ -734,7 +734,8 @@ const App: React.FC = () => {
                     variant="body2"
                     sx={{ color: "#00e676", fontWeight: 600 }}
                   >
-                    ✅ Your bid has already been revealed on-chain. No further action needed.
+                    ✅ Your bid has already been revealed on-chain. No further
+                    action needed.
                   </Typography>
                 ) : (
                   <>
