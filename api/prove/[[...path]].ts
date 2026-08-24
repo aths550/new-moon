@@ -6,15 +6,25 @@ export default async function handler(req: Request): Promise<Response> {
       status: 204,
       headers: {
         'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type',
       },
     });
   }
 
-  const body = await req.arrayBuffer();
-  const upstream = await fetch('https://proof-server.preview.midnight.network/prove', {
-    method: 'POST',
+  const url = new URL(req.url);
+  // Strip the leading "/api/prove" prefix; whatever remains is the sub-path (e.g. "/check")
+  let subPath = url.pathname.replace(/^\/api\/prove/, '');
+  if (subPath === '' || subPath === '/') {
+    subPath = '/prove'; // base call behavior, matches previous fixed handler
+  }
+
+  const upstreamUrl = `https://proof-server.preview.midnight.network${subPath}${url.search}`;
+
+  const body = req.method === 'GET' || req.method === 'HEAD' ? undefined : await req.arrayBuffer();
+
+  const upstream = await fetch(upstreamUrl, {
+    method: req.method,
     headers: { 'Content-Type': req.headers.get('content-type') ?? 'application/octet-stream' },
     body,
   });
