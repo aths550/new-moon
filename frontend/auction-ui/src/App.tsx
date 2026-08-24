@@ -306,6 +306,7 @@ const App: React.FC = () => {
       await auctionApi.revealBid();
       setStatusSeverity("success");
       setStatusMessage("👁️ Bid successfully revealed on-chain!");
+      _setRevealedBidsCount((prev) => prev + 1);
     } catch (e: unknown) {
       const err = e instanceof Error ? e : new Error(String(e));
       console.error(err);
@@ -565,7 +566,7 @@ const App: React.FC = () => {
                     </Typography>
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
-                    Revealed Bids: {_revealedBidsCount}
+                    Bids Revealed (this session): {_revealedBidsCount}
                   </Typography>
                 </Box>
 
