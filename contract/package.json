@@ -30,6 +30,6 @@
     "@midnight-ntwrk/midnight-js-contracts": "4.1.1"
   },
   "devDependencies": {
-    "vitest": "^4.1.10"
+    "vitest": "^4.1.11"
   }
 }
